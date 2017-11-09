@@ -1,2 +1,2 @@
-# mancmacala
+# mancmancala
 reinforcement learning for mancala
