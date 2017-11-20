@@ -1,20 +1,9 @@
 from side import Side
 
-# constants that define side of board
-NORTH_ROW = 0
-SOUTH_ROW = 1
-
 
 def check_seeds(seeds):
     if seeds < 0:
         raise ValueError("There has to be  non-negative number of seeds. But %s were requested." % seeds)
-
-
-def idx_of_side(side):
-    if side is Side.NORTH:
-        return NORTH_ROW
-    else:
-        return SOUTH_ROW
 
 
 class Game:
@@ -25,8 +14,8 @@ class Game:
 
     def update_board(self, raw_state):
         state = raw_state.split(",")
-        north = [i for i in state[:8]]
-        south = [i for i in state[8:]]
+        north = [int(i) for i in state[:8]]
+        south = [int(i) for i in state[8:]]
         self.board = [north, south]
 
     @classmethod
@@ -42,8 +31,8 @@ class Game:
         ]
 
         # set mancalah's to be empty
-        board[NORTH_ROW][-1] = 0
-        board[SOUTH_ROW][-1] = 0
+        board[Side.NORTH.value][-1] = 0
+        board[Side.SOUTH.value][-1] = 0
         return board
 
     @classmethod
@@ -52,11 +41,11 @@ class Game:
 
     def check_hole(self, hole):
         if hole < 1 or hole > self.holes:
-            raise ValueError("Hole number must be between 1 and %s" % (len(self.board[NORTH_ROW]) - 1))
+            raise ValueError("Hole number must be between 1 and %s" % (len(self.board[0])))
 
     def get_seeds_in_hole(self, side, hole):
         self.check_hole(hole)
-        side_idx = idx_of_side(side)
+        side_idx = side.value
         return self.board[side_idx][hole]
 
     def set_seeds(self, side, hole, seeds):
@@ -70,12 +59,12 @@ class Game:
     def check_then_fetch_idx(self, hole, seeds, side):
         self.check_hole(hole)
         check_seeds(seeds)
-        side_idx = idx_of_side(side)
+        side_idx = side.value
         return side_idx
 
     def get_opposite_seeds(self, side, hole):
         self.check_hole(hole)
-        side_idx = idx_of_side(side)
+        side_idx = side.value
         return self.board[1 - side_idx][self.holes + 1 - hole]
 
     def set_opposite_seeds(self, side, hole, seeds):
@@ -85,21 +74,21 @@ class Game:
     def add_opposite_seeds(self, side, hole, seeds):
         self.check_hole(hole)
         check_seeds(seeds)
-        side_idx = idx_of_side(side)
+        side_idx = side.value
         self.board[1 - side_idx][self.holes + 1 - hole] += seeds
 
     def get_seeds_in_store(self, side):
-        side_idx = idx_of_side(side)
+        side_idx = side.value
         return self.board[side_idx][0]
 
     def set_seeds_in_store(self, side, seeds):
         check_seeds(seeds)
-        side_idx = idx_of_side(side)
+        side_idx = side.value
         self.board[side_idx][0] = seeds
 
     def add_seeds_to_store(self, side, seeds):
         check_seeds(seeds)
-        side_idx = idx_of_side(side)
+        side_idx = side.value
         self.board[side_idx][0] += seeds
 
     def state(self):
@@ -107,7 +96,6 @@ class Game:
 
     def __repr__(self):
         north, south = self.board
-
         north = "%d -- %s" % (north[-1], " ".join(map(str, reversed(north[:7]))))
         south = "%s -- %d" % (" ".join(map(str, south[:7])), south[-1])
         return f"{north}\n{south}"
