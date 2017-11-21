@@ -35,6 +35,9 @@ class Game:
         board[Side.SOUTH.value][-1] = 0
         return board
 
+    def __getitem__(self, item):
+        return self.board[item]
+
     @classmethod
     def from_values(cls):
         return cls(board=cls.create_board())
