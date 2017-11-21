@@ -67,7 +67,6 @@ def min_max(board, remaining_depth=3):
             if best_hole == -1 or reward > best_r:
                 best_hole = i
                 best_r = reward
-    output_("MIN MOVE, %d" % (best_hole + 1))
     return best_hole, best_r
 
 
@@ -99,7 +98,6 @@ def max_min(board, remaining_depth=3):
             if best_hole == -1 or reward > best_r:
                 best_hole = i
                 best_r = reward
-    output_("MAX MOVE, %d" % (best_hole + 1))
 
     return best_hole, best_r
 
