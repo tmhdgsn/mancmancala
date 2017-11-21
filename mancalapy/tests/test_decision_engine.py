@@ -1,5 +1,5 @@
 from agent import Agent
-from decision_engine import DecisionEngineFactory
+from decision_engines import DecisionEngineFactory
 from game import Game
 
 

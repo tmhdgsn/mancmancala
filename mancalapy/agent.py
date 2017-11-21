@@ -1,6 +1,6 @@
-from decision_engine import DecisionEngineFactory
-from side import Side
+from decision_engines import DecisionEngineFactory
 from game import Game
+from side import Side
 from util import log_output
 
 
