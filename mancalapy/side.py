@@ -6,4 +6,4 @@ class Side(Enum):
     SOUTH = 1
 
     def opposite(self):
-        return Side.SOUTH if self is Side.NORTH else Side.SOUTH
+        return Side.SOUTH if self == Side.NORTH else Side.NORTH
