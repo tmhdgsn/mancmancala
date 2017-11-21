@@ -8,6 +8,7 @@ class DecisionEngineFactory:
         self.agent = agent
 
         self.engines = {
+            "basic": BasicStrategy(self.agent),
             "minimax": MiniMaxDecisionEngine(self.agent)
         }
 
@@ -19,7 +20,7 @@ class DecisionEngine:
     def __init__(self, agent):
         self.agent = agent
 
-    def get_move(self, board):
+    def get_move(self):
         raise NotImplementedError()
 
     @classmethod
@@ -59,6 +60,22 @@ class DecisionEngine:
         raise NotImplementedError()
 
 
+class BasicStrategy(DecisionEngine):
+    def __init__(self, agent):
+        super().__init__(agent)
+
+    def get_move(self):
+        board_side = self.agent.game[self.agent.side.value]
+        for i in range(MANKALAH - 1, -1, -1):
+            if board_side[i] > 0:
+                return i + 1
+
+    def __repr__(self):
+        return "Basic Strategy"
+
+    def __str__(self):
+        return "Basic Strategy"
+
 class MiniMaxDecisionEngine(DecisionEngine):
     def __init__(self, agent):
         super().__init__(agent)
@@ -69,7 +86,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, board):
+    def get_move(self):
         move, reward = self.max_min(self.agent.game.board, 4)
         return move + 1
 

@@ -42,7 +42,7 @@ class Agent:
                     self.side = self.side.opposite()
                 log_output(repr(self.game))
             if our_turn:
-                move = self.decision_engine.get_move(self.game.board)
+                move = self.decision_engine.get_move()
                 self.send_msg(f"MOVE;{move}")
 
 
