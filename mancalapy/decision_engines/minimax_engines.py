@@ -13,7 +13,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
         return "Minimax Engine"
 
     def get_move(self):
-        move, reward = self.max_min(self.agent.game.board, max_depth=7)
+        move, reward = self.max_min(self.agent.game, max_depth=6)
         return move + 1
 
     def min_max(self, board, max_depth=3):
@@ -31,9 +31,9 @@ class MiniMaxDecisionEngine(DecisionEngine):
             # if Opponent can play then play
             if hole > 0:
                 board_copy = deepcopy(board)
-                self.play_hole(i, board_copy, self.agent.side.opposite())
-                # back to our go
-                _, reward = self.max_min(board_copy, max_depth - 1)
+                repeat = self.play_hole(i, board_copy, self.agent.side.opposite())
+                _, reward = self.min_max(board_copy, max_depth - 1) \
+                    if repeat else self.max_min(board_copy, max_depth - 1)
 
                 # minimize the reward
                 if best_hole == -1 or reward > best_r:
@@ -59,8 +59,9 @@ class MiniMaxDecisionEngine(DecisionEngine):
             # play it and then let my opponent play
             if hole > 0:
                 board_copy = deepcopy(board)
-                self.play_hole(i, board_copy, self.agent.side)
-                _, reward = self.min_max(board_copy, max_depth - 1)
+                repeat = self.play_hole(i, board_copy, self.agent.side)
+                _, reward = self.max_min(board_copy, max_depth - 1) \
+                    if repeat else self.min_max(board_copy, max_depth - 1)
                 # maximize the reward
                 if best_hole == -1 or reward > best_r:
                     best_hole = i
@@ -79,7 +80,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
         return "Minimax Engine"
 
     def get_move(self):
-        move, reward = self.max_min(self.agent.game.board, alpha=-50, beta=50, max_depth=6)
+        move, reward = self.max_min(self.agent.game, alpha=-50, beta=50, max_depth=6)
         return move + 1
 
     def min_max(self, board, alpha, beta, max_depth=3):

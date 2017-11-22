@@ -36,7 +36,9 @@ class DecisionEngine:
             cur_hole = (cur_hole + 1) % 8
             seeds -= 1
 
-        return board_copy
+        # for the final move check if we get another go
+        # if cur_hole = 0, last_hole = MANKALAH
+        return current_side == agent_side and cur_hole == 0
 
     def __repr__(self):
         raise NotImplementedError()
