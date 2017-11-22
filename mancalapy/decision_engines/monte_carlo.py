@@ -34,7 +34,7 @@ class MonteCarloDecisionEngine(DecisionEngine):
         self.wins = {}
         self.plays = {}
         # Constant which is empirically correct to be root of 2
-        self.C = math.sqrt(2)
+        self.C = kwargs.get('C', math.sqrt(2))
 
     def update(self, state):
         """
