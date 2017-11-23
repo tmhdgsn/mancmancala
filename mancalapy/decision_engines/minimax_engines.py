@@ -1,3 +1,5 @@
+import sys
+
 from .decision_engine import DecisionEngine
 from copy import deepcopy
 
@@ -12,8 +14,8 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self):
-        move, reward = self.max_min(self.agent.game, max_depth=6)
+    def get_move(self, first=False):
+        move, reward = self.max_min(self.agent.game, max_depth=7)
         return move + 1
 
     def min_max(self, board, max_depth=3):
@@ -23,7 +25,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
-            return -1, self.intermediate_score(board, self.agent.side)
+            return -1, self.intermediate_score(board, self.agent.side.opposite())
 
         best_r = 1
         best_hole = -1
@@ -79,8 +81,8 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self):
-        move, reward = self.max_min(self.agent.game, alpha=-50, beta=50, max_depth=6)
+    def get_move(self, first=False):
+        move, reward = self.max_min(self.agent.game, alpha=-sys.maxsize, beta=sys.maxsize, max_depth=6)
         return move + 1
 
     def min_max(self, board, alpha, beta, max_depth=3):
@@ -90,7 +92,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
-            return -1, self.intermediate_score(board, self.agent.side)
+            return -1, self.intermediate_score(board, self.agent.side.opposite())
 
         best_r = 1
         best_hole = -1
@@ -99,7 +101,6 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
             if hole > 0:
                 board_copy = deepcopy(board)
                 self.play_hole(i, board_copy, self.agent.side.opposite())
-                # back to our go
                 _, reward = self.max_min(board_copy, alpha, beta, max_depth - 1)
 
                 # minimize the reward
