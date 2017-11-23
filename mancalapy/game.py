@@ -102,3 +102,12 @@ class Game:
         north = "%d -- %s" % (north[-1], " ".join(map(str, reversed(north[:7]))))
         south = "%s -- %d" % (" ".join(map(str, south[:7])), south[-1])
         return f"{north}\n{south}"
+
+    def __eq__(self, other):
+        if isinstance(other, self.__class__):
+            for a, b in zip(self.board, other.board):
+                for i, j in zip(a, b):
+                    if i != j:
+                        return False
+            return True
+        return False

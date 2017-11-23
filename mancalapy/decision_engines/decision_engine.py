@@ -1,11 +1,11 @@
-
 class DecisionEngine:
     MANKALAH = 7
 
     def __init__(self, agent):
         self.agent = agent
+        self.moves_made = 0
 
-    def get_move(self):
+    def get_move(self, first=False):
         raise NotImplementedError()
 
     @classmethod
@@ -23,7 +23,7 @@ class DecisionEngine:
         seeds = board_copy[agent_side.value][hole]
         board_copy[agent_side.value][hole] = 0
         cur_hole = (hole + 1)
-        current_side = agent_side if cur_hole < 8 else agent_side.opposite()
+        current_side = agent_side if cur_hole < 7 else agent_side.opposite()
         while seeds > 0:
             # only increment my mankalah
             if current_side != agent_side and cur_hole == cls.MANKALAH:
@@ -38,7 +38,7 @@ class DecisionEngine:
 
         # for the final move check if we get another go
         # if cur_hole = 0, last_hole = MANKALAH
-        return current_side == agent_side and cur_hole == 0
+        return current_side.opposite() == agent_side and cur_hole == 0
 
     def __repr__(self):
         raise NotImplementedError()
@@ -51,7 +51,7 @@ class BasicStrategy(DecisionEngine):
     def __init__(self, agent):
         super().__init__(agent)
 
-    def get_move(self):
+    def get_move(self, first=False):
         board_side = self.agent.game[self.agent.side.value]
         for i in range(self.MANKALAH - 1, -1, -1):
             if board_side[i] > 0:

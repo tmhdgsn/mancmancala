@@ -11,7 +11,7 @@ class Agent:
         self.factory = DecisionEngineFactory(self)
         self.game = Game()
         self.side = Side.NORTH
-        self.decision_engine = self.factory[engine]
+        self.decision_engine = self.factory[engine] if engine in self.factory.engines else self.factory["basic"]
 
     @classmethod
     def get_msg(cls):
