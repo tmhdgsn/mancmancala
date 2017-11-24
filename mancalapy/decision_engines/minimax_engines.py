@@ -14,8 +14,8 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, first=False):
-        move, reward = self.max_min(self.agent.game, max_depth=7)
+    def get_move(self, first=False, depth=7):
+        move, reward = self.max_min(self.agent.game, max_depth=depth)
         return move + 1
 
     def min_max(self, board, max_depth=3):
