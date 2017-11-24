@@ -10,7 +10,16 @@ class DecisionEngine:
 
     @classmethod
     def intermediate_score(cls, board, side):
-        return board[side.value][cls.MANKALAH] - board[side.opposite().value][cls.MANKALAH]
+        my_mankalah = board[side.value][cls.MANKALAH]
+        opponent_mankalah = board[side.opposite().value][cls.MANKALAH]
+        score = 0
+        if my_mankalah != opponent_mankalah and (my_mankalah != 0 or opponent_mankalah != 0):
+            higher_mankalah = max(my_mankalah, opponent_mankalah)
+            lower_mankalah = min(my_mankalah, opponent_mankalah)
+            score = (1 / higher_mankalah * (higher_mankalah-lower_mankalah) + 1) * higher_mankalah
+            return score if higher_mankalah == my_mankalah else score * -1
+        # return sum(board[side.value]) - sum(board[side.opposite().value])
+        return score
 
     @classmethod
     def game_score(cls, board, side):
@@ -62,3 +71,20 @@ class BasicStrategy(DecisionEngine):
 
     def __str__(self):
         return "Basic Strategy"
+
+
+class AwesomeTactics(DecisionEngine):
+    """
+    If you are not playing with the capture rule, a simple strategy is to pick a hole on
+     your side of the board and never play any stones from it. If you can make your opponent run out of stones first,
+     this assures that every stone which lands on that spot will be yours at the end of the game.
+    """
+
+    def __repr__(self):
+        pass
+
+    def __str__(self):
+        pass
+
+    def get_move(self, first=False):
+        pass
