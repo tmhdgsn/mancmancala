@@ -14,20 +14,21 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, first=False, depth=7):
-        move, reward = self.max_min(self.agent.game, max_depth=depth)
+    def get_move(self, game=None, first=False, depth=5):
+        game = game if game else self.agent.game
+        move, reward = self.max_min(game, max_depth=depth)
         return move + 1
 
     def min_max(self, board, max_depth=3):
         # if the sum of all holes - mankalah is 0 game over
-        if sum(board[self.agent.side.opposite().value][:self.MANKALAH]) == 0:
-            return -1, self.game_score(board, self.agent.side.opposite())
+        if self.game_over(board):
+            return -1, self.game_score(board, self.agent.side)
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
-            return -1, self.intermediate_score(board, self.agent.side.opposite())
+            return -1, self.intermediate_score(board, self.agent.side)
 
-        best_r = 1
+        best_r = float("inf")
         best_hole = -1
         for i, hole in enumerate(board[self.agent.side.opposite().value][:self.MANKALAH]):
             # if Opponent can play then play
@@ -38,14 +39,14 @@ class MiniMaxDecisionEngine(DecisionEngine):
                     if repeat else self.max_min(board_copy, max_depth - 1)
 
                 # minimize the reward
-                if best_hole == -1 or reward > best_r:
+                if best_hole == -1 or reward < best_r:
                     best_hole = i
                     best_r = reward
         return best_hole, best_r
 
     def max_min(self, board, max_depth=3):
         # if the sum of all holes - mankalah is 0 game over
-        if sum(board[self.agent.side.value][:self.MANKALAH]) == 0:
+        if self.game_over(board):
             return -1, self.game_score(board, self.agent.side)
 
         # shitty depth control to prevent death of CPU
@@ -53,7 +54,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
             return -1, self.intermediate_score(board, self.agent.side)
 
         # else we traverse game tree
-        best_r = -1
+        best_r = -float('inf')
         best_hole = -1
         # for each hole on my side
         for i, hole in enumerate(board[self.agent.side.value][:self.MANKALAH]):
@@ -81,20 +82,21 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, first=False):
-        move, reward = self.max_min(self.agent.game, alpha=-sys.maxsize, beta=sys.maxsize, max_depth=6)
+    def get_move(self, game=None, first=False):
+        game = game if game else self.agent.game
+        move, reward = self.max_min(game, alpha=-sys.maxsize, beta=sys.maxsize, max_depth=6)
         return move + 1
 
     def min_max(self, board, alpha, beta, max_depth=3):
         # if the sum of all holes - mankalah is 0 game over
-        if sum(board[self.agent.side.opposite().value][:self.MANKALAH]) == 0:
+        if self.game_over(board):
             return -1, self.game_score(board, self.agent.side.opposite())
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
             return -1, self.intermediate_score(board, self.agent.side.opposite())
 
-        best_r = 1
+        best_r = float('inf')
         best_hole = -1
         for i, hole in enumerate(board[self.agent.side.opposite().value][:self.MANKALAH]):
             # if Opponent can play then play
@@ -104,7 +106,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
                 _, reward = self.max_min(board_copy, alpha, beta, max_depth - 1)
 
                 # minimize the reward
-                if best_hole == -1 or reward > best_r:
+                if best_hole == -1 or reward < best_r:
                     best_hole = i
                     best_r = reward
                 beta = min(beta, best_r)
@@ -114,7 +116,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
 
     def max_min(self, board, alpha, beta, max_depth=3):
         # if the sum of all holes - mankalah is 0 game over
-        if sum(board[self.agent.side.value][:self.MANKALAH]) == 0:
+        if self.game_over(board):
             return -1, self.game_score(board, self.agent.side)
 
         # shitty depth control to prevent death of CPU
@@ -122,7 +124,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
             return -1, self.intermediate_score(board, self.agent.side)
 
         # else we traverse game tree
-        best_r = -1
+        best_r = -float('inf')
         best_hole = -1
         # for each hole on my side
         for i, hole in enumerate(board[self.agent.side.value][:self.MANKALAH]):

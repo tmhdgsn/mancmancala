@@ -1,3 +1,6 @@
+from side import Side
+
+
 class DecisionEngine:
     MANKALAH = 7
 
@@ -5,7 +8,7 @@ class DecisionEngine:
         self.agent = agent
         self.moves_made = 0
 
-    def get_move(self, first=False):
+    def get_move(self, game, first=False):
         raise NotImplementedError()
 
     @classmethod
@@ -16,15 +19,19 @@ class DecisionEngine:
         if my_mankalah != opponent_mankalah and (my_mankalah != 0 or opponent_mankalah != 0):
             higher_mankalah = max(my_mankalah, opponent_mankalah)
             lower_mankalah = min(my_mankalah, opponent_mankalah)
-            score = (1 / higher_mankalah * (higher_mankalah-lower_mankalah) + 1) * higher_mankalah
+            score = (1 / higher_mankalah * (higher_mankalah - lower_mankalah) + 1) * higher_mankalah
             return score if higher_mankalah == my_mankalah else score * -1
         # return sum(board[side.value]) - sum(board[side.opposite().value])
         return score
 
     @classmethod
+    def game_over(cls, board):
+        return sum(board[Side.NORTH.value][:-1]) == 0 or sum(board[Side.SOUTH.value][:-1]) == 0
+
+    @classmethod
     def game_score(cls, board, side):
         opponent_score = sum(board[side.opposite().value])
-        my_score = board[side.value][cls.MANKALAH]
+        my_score = sum(board[side.value])
         return my_score - opponent_score
 
     @classmethod
@@ -32,7 +39,7 @@ class DecisionEngine:
         seeds = board_copy[agent_side.value][hole]
         board_copy[agent_side.value][hole] = 0
         cur_hole = (hole + 1)
-        current_side = agent_side if cur_hole < 7 else agent_side.opposite()
+        current_side = agent_side
         while seeds > 0:
             # only increment my mankalah
             if current_side != agent_side and cur_hole == cls.MANKALAH:
@@ -60,7 +67,7 @@ class BasicStrategy(DecisionEngine):
     def __init__(self, agent):
         super().__init__(agent)
 
-    def get_move(self, first=False):
+    def get_move(self, game=None, first=False):
         board_side = self.agent.game[self.agent.side.value]
         for i in range(self.MANKALAH - 1, -1, -1):
             if board_side[i] > 0:
