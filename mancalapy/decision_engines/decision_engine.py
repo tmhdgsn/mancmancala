@@ -1,3 +1,5 @@
+import numpy as np
+
 from side import Side
 
 
@@ -8,7 +10,7 @@ class DecisionEngine:
         self.agent = agent
         self.moves_made = 0
 
-    def get_move(self, game, first=False):
+    def get_move(self, game=None, first=False):
         raise NotImplementedError()
 
     @classmethod
@@ -16,22 +18,22 @@ class DecisionEngine:
         my_mankalah = board[side.value][cls.MANKALAH]
         opponent_mankalah = board[side.opposite().value][cls.MANKALAH]
         score = 0
-        if my_mankalah != opponent_mankalah and (my_mankalah != 0 or opponent_mankalah != 0):
-            higher_mankalah = max(my_mankalah, opponent_mankalah)
-            lower_mankalah = min(my_mankalah, opponent_mankalah)
-            score = (1 / higher_mankalah * (higher_mankalah - lower_mankalah) + 1) * higher_mankalah
-            return score if higher_mankalah == my_mankalah else score * -1
-        # return sum(board[side.value]) - sum(board[side.opposite().value])
-        return score
+        # if my_mankalah != opponent_mankalah:
+        #     higher_mankalah = max(my_mankalah, opponent_mankalah)
+        #     lower_mankalah = min(my_mankalah, opponent_mankalah)
+        #     score = (1 / higher_mankalah * (higher_mankalah - lower_mankalah) + 1) * higher_mankalah
+        #     return score if higher_mankalah == my_mankalah else score * -1
+        return sum(board[side.value]) - sum(board[side.opposite().value])
+        # return score
 
     @classmethod
     def game_over(cls, board):
-        return sum(board[Side.NORTH.value][:-1]) == 0 or sum(board[Side.SOUTH.value][:-1]) == 0
+        return np.sum(board[Side.NORTH.value][:-1]) == 0 or np.sum(board[Side.SOUTH.value][:-1]) == 0
 
     @classmethod
     def game_score(cls, board, side):
-        opponent_score = sum(board[side.opposite().value])
-        my_score = sum(board[side.value])
+        opponent_score = np.sum(board[side.opposite().value])
+        my_score = np.sum(board[side.value])
         return my_score - opponent_score
 
     @classmethod
@@ -40,7 +42,7 @@ class DecisionEngine:
         board_copy[agent_side.value][hole] = 0
         cur_hole = (hole + 1)
         current_side = agent_side
-        while seeds > 0:
+        while seeds > 1:
             # only increment my mankalah
             if current_side != agent_side and cur_hole == cls.MANKALAH:
                 cur_hole = (cur_hole + 1) % 8
@@ -52,9 +54,17 @@ class DecisionEngine:
             cur_hole = (cur_hole + 1) % 8
             seeds -= 1
 
-        # for the final move check if we get another go
-        # if cur_hole = 0, last_hole = MANKALAH
-        return current_side.opposite() == agent_side and cur_hole == 0
+        opposite_hole = cls.MANKALAH - 1 - hole
+        # check if we can capture opponents pieces
+        if cur_hole != cls.MANKALAH and current_side == agent_side and board_copy[current_side.value][cur_hole] == 0 and \
+                board_copy[current_side.opposite().value][opposite_hole] > 0:
+            captured_seeds = board_copy[current_side.opposite().value][opposite_hole]
+            board_copy[current_side.opposite().value][opposite_hole] = 0
+            board_copy[current_side.value][cls.MANKALAH] += captured_seeds + 1  # current seed
+            return False
+
+        board_copy[current_side.value][cur_hole] += 1
+        return current_side == agent_side and cur_hole == cls.MANKALAH
 
     def __repr__(self):
         raise NotImplementedError()

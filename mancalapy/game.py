@@ -1,4 +1,5 @@
 from side import Side
+import numpy as np
 
 
 def check_seeds(seeds):
@@ -10,30 +11,19 @@ class Game:
     def __init__(self, holes=7, seeds=7, board=None):
         self.holes = holes
         self.seeds = seeds
-        self.board = board if board else self.create_board(holes, seeds)
+        self.board = board if board is not None else self.create_board(holes, seeds)
+
+    @classmethod
+    def create_board(cls, holes, seeds):
+        board = np.ndarray(dtype=int, shape=(2, holes+1))
+        board.fill(seeds)
+        board[:, -1] = 0
+        return board
 
     def update_board(self, raw_state):
         state = raw_state.split(",")
-        north = [int(i) for i in state[:8]]
-        south = [int(i) for i in state[8:]]
-        self.board = [north, south]
-
-    @classmethod
-    def create_board(cls, holes=7, seeds=7):
-        if holes < 1:
-            raise ValueError("There has to be at least one hole.")
-        if seeds < 1:
-            raise ValueError("There has to be a non-negative number of seeds.")
-
-        board = [
-            [seeds for _ in range(holes + 1)],
-            [seeds for _ in range(holes + 1)]
-        ]
-
-        # set mancalah's to be empty
-        board[Side.NORTH.value][-1] = 0
-        board[Side.SOUTH.value][-1] = 0
-        return board
+        self.board[Side.NORTH.value] = np.array(list(map(int, state[:8])))
+        self.board[Side.SOUTH.value] = np.array(list(map(int, state[8:])))
 
     def __getitem__(self, item):
         return self.board[item]

@@ -14,7 +14,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, game=None, first=False, depth=5):
+    def get_move(self, game=None, first=False, depth=7):
         game = game if game else self.agent.game
         move, reward = self.max_min(game, max_depth=depth)
         return move + 1
@@ -77,14 +77,14 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
         super().__init__(agent)
 
     def __repr__(self):
-        return "Minimax Engine"
+        return "AlphaBetaMinimax Engine"
 
     def __str__(self):
-        return "Minimax Engine"
+        return "AlphaBetaMinimax Engine"
 
     def get_move(self, game=None, first=False):
         game = game if game else self.agent.game
-        move, reward = self.max_min(game, alpha=-sys.maxsize, beta=sys.maxsize, max_depth=6)
+        move, reward = self.max_min(game, alpha=-float('inf'), beta=float('inf'), max_depth=7)
         return move + 1
 
     def min_max(self, board, alpha, beta, max_depth=3):
@@ -138,7 +138,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
                 if best_hole == -1 or reward > best_r:
                     best_hole = i
                     best_r = reward
-                alpha = min(alpha, best_r)
+                alpha = max(alpha, best_r)
                 if best_r >= beta:
                     return best_hole, best_r
         return best_hole, best_r
