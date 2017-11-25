@@ -1,11 +1,29 @@
 import math
 import random
-from datetime import datetime
+from datetime import datetime, timedelta
+
+from copy import deepcopy
+
 from .decision_engine import DecisionEngine
 
+
 class MonteCarloDecisionEngine(DecisionEngine):
-    def __init__(self, agent):
+    def __init__(self, agent, states=None, **kwargs):
+        """
+        Takes an agent and some states from which the rewards and node visitation count is appended.
+        :param agent:
+        :param: states: data structure for preserving history, rewards.
+        :param kwargs:
+        """
         super().__init__(agent)
+        # Keep track of wins and play for each state run during simulation
+        self.plays = {}
+        self.wins = {}
+
+        self.max_depth = 0
+        self.states = states
+        self.current_state = states[0]
+        self.initialize_mc(**kwargs)
 
     def __repr__(self):
         return "Monte Carlo Engine"
@@ -13,88 +31,77 @@ class MonteCarloDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Monte Carlo Engine"
 
-    def initialize_mc(self, game, states=[], **kwargs):
+    def initialize_mc(self, **kwargs):
         """
-        Takes an instance of the Game and some states to which the rewards
-        and how many times the node gets visited is appended.
-
-        :param: game: instance of the Kalah Game.
-        :param: states: data structure for preserving history, rewards.
         :param: kwargs: For additional parameters
         """
-        self.game = game
-        self.states = states
 
         # Time taken for the calculation to happen - timeout for calculation
         # TODO: Could be reduced
         self.calc_timeout = timedelta(seconds=kwargs.get('time', 30))
+
         # Number of moves to be done while simulating till the END
         self.max_moves = kwargs.get('moves', 100)
-        # Keep track of wins and play for each state run during simulation
-        self.wins = {}
-        self.plays = {}
         # Constant which is empirically correct to be root of 2
         self.C = kwargs.get('C', math.sqrt(2))
 
-    def update(self, state):
-        """
-        Once a game state has been played, and appends it to the tree/history.
-
-        :param: state: current state of the game
-        """
-        self.states.append(state)
-
-    def get_best_move(self):
+    def get_move(self, game=None, first=False):
         """
         Calculates the best move from the current game state and returns it.
         """
-        # TODO:
-        self.max_depth = 0
-        state, player = self.states[-1], self.states[-1]
-        legal_moves_by_index = self.game.get_legal_moves(self.states[:])
+        state, player = self.current_state[self.agent.side.value], self.current_state[self.agent.side.value]
+        legal_moves_by_index = self.get_legal_moves()
 
         # Check for the legal moves if it is None, return, return 1 if there is one
-        if not legal_moves_by_index:
+        if not len(legal_moves_by_index):
             return
         if len(legal_moves_by_index) == 1:
-            return legal_move[0]
+            return legal_moves_by_index[0]
 
         # Get all the possible move states from the current state
-        moves_states = [
-            (p, self.game.next_state(state, p)) for p in legal_moves_by_index
-        ]
-        percentage_wins, best_move = max(
+        moves_states = []
+        state_copy = deepcopy(self.current_state)
+
+        for move in legal_moves_by_index:
+            our_move = self.play_hole(move, state_copy, self.agent.side.value)
+            moves_states.append(state_copy)
+            state_copy = deepcopy(self.current_state)
+
+        _, best_move = max(
             (self.wins.get((player, S), 0) / self.plays.get((player, S), 1), p)
             for p, S in moves_states
         )
         
-        games = 0
+        simulation_count = 0
         begin = datetime.utcnow()
         while datetime.utcnow() - begin < self.calc_timeout:
             self.run_simulation()
-            games += 1
+            simulation_count += 1
 
         return best_move
+
+    def get_legal_moves(self):
+        return self.agent.game.board[self.agent.side.value].nonzero()[0]
 
     def run_simulation(self):
         """
         Samples a random move and plays the game out from that position, then
-        updats the table with the rewards.
+        updates the table with the rewards.
         """
         expand = True
         visited_states = set()
-        states_copy = self.states[:]
         # Since we don't want to change the main one
-        state, currently_player_at = states_copy[-1], states_copy[-1]
+        state_copy = deepcopy(self.current_state)
+        state, player = state_copy[self.agent.side.value], state_copy[self.agent.side.value]
 
         for t in range(self.max_moves + 1):
             # Needs to take a the last game state and should return the list
             # of legal moves the players
-            legal_moves_by_index = self.game.get_legal_moves(states_copy)
-            # Returns the new game state by applying any of the next possible moves
-            moves_states = [
-                (p, self.game.next_state(state, p)) for p in legal_moves_by_index
-            ]
+            moves_states = []
+            legal_moves_by_index = self.get_legal_moves()
+            for move in legal_moves_by_index:
+                moves_states.append(self.play_hole(move, state_copy, self.agent.side.value))
+                state_copy = deepcopy(self.current_state)
 
             # Apply the UCB formula to check which state needs to be picked
             # for simulation
@@ -103,18 +110,16 @@ class MonteCarloDecisionEngine(DecisionEngine):
             # parent node was visited and 'n' is the number of times the
             # current node is visited.
             if all(self.plays.get((player, S)) for p, S in moves_states):
-                log_total = log(
+                log_total = math.log(
                     sum(self.plays[(player, S)] for p, S in moves_states))
                 value, next_move, state = max(
                     ((self.wins[(player, S)] / self.plays[(player, S)]) +
-                     self.C * sqrt(log_total / self.plays[(player, S)]), p, S)
+                     self.C * math.sqrt(log_total / self.plays[(player, S)]), p, S)
                     for p, S in moves_states
                 )
             else:
                 # Make random choice if no states given
                 next_move, state = random.choice(moves_states)
-
-            states_copy.append(state)
 
             if expand and (player, state) not in self.plays:
                 expand = False
@@ -127,10 +132,10 @@ class MonteCarloDecisionEngine(DecisionEngine):
             visited_states.add((player, state))
 
             # Update the state of the player with the above state
-            player = states_copy[-1]
+            player = state
 
             # Check if the game has been won (1) or drawn (-1) or still(0) ongoing
-            winner = self.game.winner(states_copy)
+            winner = state
             if winner:
                 break
 

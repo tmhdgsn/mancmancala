@@ -10,7 +10,7 @@ class DecisionEngine:
         self.agent = agent
         self.moves_made = 0
 
-    def get_move(self, game, first=False):
+    def get_move(self, game=None, first=False):
         raise NotImplementedError()
 
     @classmethod

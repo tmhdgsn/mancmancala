@@ -1,4 +1,4 @@
-from decision_engines import BasicStrategy
+from decision_engines import BasicStrategy, np
 from decision_engines.minimax_engines import (
     MiniMaxDecisionEngine, AlphaBetaMiniMaxDecisionEngine
 )
@@ -13,7 +13,10 @@ class DecisionEngineFactory:
             "basic": BasicStrategy(self.agent),
             "minimax": MiniMaxDecisionEngine(self.agent),
             "ab_minimax": AlphaBetaMiniMaxDecisionEngine(self.agent),
-            "monte_carlo": MonteCarloDecisionEngine(self.agent)
+            "monte_carlo": MonteCarloDecisionEngine(self.agent, np.array([
+                [7, 7, 7, 7, 7, 7, 7, 0],
+                [7, 7, 7, 7, 7, 7, 7, 0]
+            ]))
         }
 
     def __getitem__(self, item):
