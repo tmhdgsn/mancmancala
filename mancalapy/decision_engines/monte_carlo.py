@@ -87,7 +87,7 @@ class MonteCarloDecisionEngine(DecisionEngine):
         # Since we don't want to change the main one
         state, currently_player_at = states_copy[-1], states_copy[-1]
 
-        for t in xrange(self.max_moves + 1):
+        for t in range(self.max_moves + 1):
             # Needs to take a the last game state and should return the list
             # of legal moves the players
             legal_moves_by_index = self.game.get_legal_moves(states_copy)
