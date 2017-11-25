@@ -1,3 +1,5 @@
+import numpy as np
+
 from agent import Agent
 from game import Game
 from side import Side
@@ -18,6 +20,13 @@ test_games = [
     ]), 6, Side.NORTH, Game(board=[
         [0, 0, 0, 0, 0, 0, 0, 20],
         [1, 21, 14, 14, 13, 13, 2, 1]
+    ])),
+    (Game(board=np.array([
+        [0, 0, 1, 1, 2, 12, 12, 5],
+        [1, 15, 11, 10, 10, 9, 8, 1]
+    ])), 1, Side.SOUTH, Game(board=[
+        [1, 1, 2, 2, 3, 0, 13, 5],
+        [2, 0, 12, 11, 11, 10, 9, 16]
     ]))
 ]
 
