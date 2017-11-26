@@ -35,6 +35,9 @@ class MonteCarloDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Monte Carlo Engine"
 
+    def hash(self, state):
+        return hash(str(state))
+
     def get_legal_moves(self, board, side):
         return board[side.value][:self.MANKALAH].nonzero()[0]
 
@@ -50,20 +53,13 @@ class MonteCarloDecisionEngine(DecisionEngine):
             simulation_count += 1
 
         legal_moves_by_index = self.get_legal_moves(self.agent.game.board, self.agent.side)
-
-        # Check for the legal moves if it is None, return, return 1 if there is one
-        if not len(legal_moves_by_index):
-            return
-        if len(legal_moves_by_index) == 1:
-            return legal_moves_by_index[0]
-
         # Get all the possible move states from the current state
         moves_states = self.get_move_states(self.agent.game.board, legal_moves_by_index, self.agent.side)
         return self.get_best_move(self.agent.side, moves_states)
 
     def get_best_move(self, player, moves_states):
         stats = [
-            (self.wins.get((player, hash(str(state))), 0) / self.plays.get((player, hash(str(state))), 1), move_idx)
+            (self.wins.get((player, self.hash(state)), 0) / self.plays.get((player, self.hash(state)), 1), move_idx)
             for move_idx, state, _ in moves_states]
         _, best_move = max(stats, key=lambda x: x[0])
 
@@ -79,8 +75,8 @@ class MonteCarloDecisionEngine(DecisionEngine):
         return moves_states
 
     def ucb_value(self, side, log_total, state):
-        exploration = self.wins.get(hash(str(state)), 0) / self.plays.get(hash(str(state)), 1)
-        exploitation = self.C * math.sqrt(log_total / self.plays[(side, hash(str(state)))])
+        exploration = self.wins.get(self.hash(state), 0) / self.plays.get(self.hash(state), 1)
+        exploitation = self.C * math.sqrt(log_total / self.plays[(side, self.hash(state))])
         return (exploitation + exploration) * (1 if side == self.agent.side else -1)
 
     def run_simulation(self, init_state):
@@ -95,10 +91,10 @@ class MonteCarloDecisionEngine(DecisionEngine):
             legal = self.get_legal_moves(board=state, side=self.agent.side)
             moves_states = self.get_move_states(board=state, legal_moves=legal, side=self.agent.side)
 
-            if all(self.plays.get((side, hash(str(state)))) for _, state, side in moves_states):
-                log_total = math.log(sum(self.plays[(side, hash(str(state)))] for _, state, side in moves_states))
+            if all(self.plays.get((side, self.hash(state))) for _, state, side in moves_states):
+                log_total = math.log(sum(self.plays[(side, self.hash(state))] for _, state, side in moves_states))
                 bound_plays = [
-                    (self.ucb_value(side, log_total, state), move_idx, hash(str(state))) for move_idx, state, side in
+                    (self.ucb_value(side, log_total, state), move_idx, self.hash(state)) for move_idx, state, side in
                     moves_states
                 ]
                 _, move_idx, state = max(bound_plays)
@@ -107,11 +103,11 @@ class MonteCarloDecisionEngine(DecisionEngine):
                 # Make random choice if no states given
                 _, state, side = random.choice(moves_states)
 
-            visited_states[hash(str(state))] = state
-            if expand and not hash(str(state)) in self.plays:
+            visited_states[self.hash(state)] = state
+            if expand and not self.hash(state) in self.plays:
                 expand = False
-                self.plays[hash(str(state))] = 0
-                self.wins[hash(str(state))] = 0
+                self.plays[self.hash(state)] = 0
+                self.wins[self.hash(state)] = 0
 
                 if m > self.max_depth:
                     self.max_depth = m
