@@ -20,7 +20,6 @@ class MonteCarloDecisionEngine(DecisionEngine):
         self.plays = {}
         self.wins = {}
 
-        self.max_depth = 0
         self.states = states
         self.current_state = states[0]
         self.initialize_mc(**kwargs)
@@ -49,8 +48,16 @@ class MonteCarloDecisionEngine(DecisionEngine):
         """
         Calculates the best move from the current game state and returns it.
         """
-        state, player = self.current_state[self.agent.side.value], self.current_state[self.agent.side.value]
+        self.max_depth = 0
+        simulation_count = 0
+        begin = datetime.utcnow()
+        while datetime.utcnow() - begin < self.calc_timeout:
+            self.run_simulation()
+            simulation_count += 1
+
         legal_moves_by_index = self.get_legal_moves()
+
+        state, player = self.current_state[self.agent.side.value], self.current_state[self.agent.side.value]
 
         # Check for the legal moves if it is None, return, return 1 if there is one
         if not len(legal_moves_by_index):
@@ -71,12 +78,6 @@ class MonteCarloDecisionEngine(DecisionEngine):
             (self.wins.get((player, S), 0) / self.plays.get((player, S), 1), p)
             for p, S in moves_states
         )
-        
-        simulation_count = 0
-        begin = datetime.utcnow()
-        while datetime.utcnow() - begin < self.calc_timeout:
-            self.run_simulation()
-            simulation_count += 1
 
         return best_move
 
@@ -121,6 +122,8 @@ class MonteCarloDecisionEngine(DecisionEngine):
                 # Make random choice if no states given
                 next_move, state = random.choice(moves_states)
 
+            visited_states.add((player, state))
+
             if expand and (player, state) not in self.plays:
                 expand = False
                 self.plays[(player, state)] = 0
@@ -129,14 +132,7 @@ class MonteCarloDecisionEngine(DecisionEngine):
                 if t > self.max_depth:
                     self.max_depth = t
 
-            visited_states.add((player, state))
-
-            # Update the state of the player with the above state
-            player = state
-
-            # Check if the game has been won (1) or drawn (-1) or still(0) ongoing
-            winner = state
-            if winner:
+            if self.agent.game.decision_engine.game_over:
                 break
 
         # So we update the plays and the wins depending upon whether it has won or not
@@ -144,5 +140,4 @@ class MonteCarloDecisionEngine(DecisionEngine):
             if (player, state) not in self.plays:
                 continue
             self.plays[(player, state)] += 1
-            if player == winner:
-                self.wins[(player, state)] += 1
+            self.wins[(player, state)] += self.agent.game.game_score(state)
