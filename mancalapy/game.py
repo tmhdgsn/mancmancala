@@ -1,10 +1,23 @@
 from side import Side
 import numpy as np
+import _md5
 
 
 def check_seeds(seeds):
     if seeds < 0:
         raise ValueError("There has to be  non-negative number of seeds. But %s were requested." % seeds)
+
+
+def hash_board(board):
+    np.array([])
+    return hash(board)
+
+
+def print_board(board):
+    north, south = board
+    north = "%d -- %s" % (north[-1], " ".join(map(str, reversed(north[:7]))))
+    south = "%s -- %d" % (" ".join(map(str, south[:7])), south[-1])
+    print(f"{north}\n{south}")
 
 
 class Game:
@@ -15,7 +28,7 @@ class Game:
 
     @classmethod
     def create_board(cls, holes, seeds):
-        board = np.ndarray(dtype=int, shape=(2, holes+1))
+        board = np.ndarray(dtype=int, shape=(2, holes + 1))
         board.fill(seeds)
         board[:, -1] = 0
         return board

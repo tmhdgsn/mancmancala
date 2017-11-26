@@ -9,7 +9,7 @@ from side import Side
 
 @pytest.fixture(scope="module")
 def mock_agent():
-    return Agent("ab_minimax")
+    return Agent("basic")
 
 
 @mock.patch('builtins.input')
