@@ -1,12 +1,7 @@
 import math
 import random
-import numpy as np
-from datetime import datetime, timedelta
-
-import game
-from game import Game
-from side import Side
 from copy import deepcopy
+from datetime import datetime, timedelta
 
 from .decision_engine import DecisionEngine
 
@@ -22,18 +17,7 @@ class MonteCarloDecisionEngine(DecisionEngine):
         # Keep track of wins and play for each state run during simulation
         self.plays = {}
         self.wins = {}
-        self.initialize_mc(**kwargs)
 
-    def __repr__(self):
-        return "Monte Carlo Engine"
-
-    def __str__(self):
-        return "Monte Carlo Engine"
-
-    def initialize_mc(self, **kwargs):
-        """
-        :param: kwargs: For additional parameters
-        """
         # Time taken for the calculation to happen - timeout for calculation
         # TODO: Could be reduced
         self.calc_timeout = timedelta(seconds=kwargs.get('time', 1))
@@ -43,11 +27,18 @@ class MonteCarloDecisionEngine(DecisionEngine):
         # Constant which is empirically correct to be root of 2
         self.C = kwargs.get('C', math.sqrt(2))
 
+        self.max_depth = 0
+
+    def __repr__(self):
+        return "Monte Carlo Engine"
+
+    def __str__(self):
+        return "Monte Carlo Engine"
+
     def get_legal_moves(self, board, side):
         return board[side.value][:self.MANKALAH].nonzero()[0]
 
     def get_move(self, game=None, first=False):
-        self.max_depth = 0
         simulation_count = 0
         begin = datetime.utcnow()
 
@@ -82,8 +73,8 @@ class MonteCarloDecisionEngine(DecisionEngine):
         moves_states = []
         for move_idx in legal_moves:
             board_copy = deepcopy(board)
-            ourTurn = self.play_hole(move_idx, board_copy, side)
-            new_side = side if ourTurn else side.opposite()
+            our_turn = self.play_hole(move_idx, board_copy, side)
+            new_side = side if our_turn else side.opposite()
             moves_states.append((move_idx, board_copy, new_side))
         return moves_states
 
@@ -107,7 +98,8 @@ class MonteCarloDecisionEngine(DecisionEngine):
             if all(self.plays.get((side, hash(str(state)))) for _, state, side in moves_states):
                 log_total = math.log(sum(self.plays[(side, hash(str(state)))] for _, state, side in moves_states))
                 bound_plays = [
-                    (self.ucb_value(log_total, state), move_idx, hash(str(state))) for move_idx, state, side in moves_states
+                    (self.ucb_value(side, log_total, state), move_idx, hash(str(state))) for move_idx, state, side in
+                    moves_states
                 ]
                 _, move_idx, state = max(bound_plays)
 
