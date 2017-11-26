@@ -8,9 +8,8 @@ class DecisionEngine:
 
     def __init__(self, agent):
         self.agent = agent
-        self.moves_made = 0
 
-    def get_move(self, game, first=False):
+    def get_move(self, game=None, first=False):
         raise NotImplementedError()
 
     @classmethod
@@ -30,6 +29,7 @@ class DecisionEngine:
     def game_over(cls, board):
         return np.sum(board[Side.NORTH.value][:-1]) == 0 or np.sum(board[Side.SOUTH.value][:-1]) == 0
 
+    ## TODO: game_score should always be from the agent perspective
     @classmethod
     def game_score(cls, board, side):
         opponent_score = np.sum(board[side.opposite().value])
