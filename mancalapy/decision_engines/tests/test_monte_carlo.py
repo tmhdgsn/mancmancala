@@ -11,22 +11,67 @@ def monte_mock_agent():
     return Agent("monte_carlo")
 
 
-test_games = [
-    (Game(), Side.SOUTH, 1),
-    (Game(board=np.array([
-        [0, 0, 0, 0, 0, 2, 7, 18],
-        [0, 20, 13, 13, 12, 12, 0, 1]
-    ])), Side.NORTH, 7),
+test_legal_moves = [
+    (Game(), Side.SOUTH, np.array([0, 1, 2, 3, 4, 5, 6])),
     (Game(board=np.array([
         [1, 1, 2, 2, 2, 2, 1, 19],
         [1, 2, 1, 2, 0, 2, 0, 60]
-    ], np.int32)), Side.SOUTH, 6)
+    ], np.int32)), Side.SOUTH, np.array([0, 1, 2, 3, 5]))
 ]
 
+test_moves_states = [
+    # (Game(), Side.SOUTH, np.array([
+    #     np.array([[7, 7, 7, 7, 7, 7, 7, 0],
+    #     [0, 8, 8, 8, 8, 8, 8, 1]]),
+    #     np.array([[8, 7, 7, 7, 7, 7, 7, 0],
+    #     [7, 0, 8, 8, 8, 8, 8, 1]]),
+    #     np.array([[8, 8, 7, 7, 7, 7, 7, 0],
+    #     [7, 7, 0, 8, 8, 8, 8, 1]]),
+    #     np.array([[8, 8, 8, 7, 7, 7, 7, 0],
+    #     [7, 7, 7, 0, 8, 8, 8, 1]]),
+    #     np.array([[8, 8, 8, 8, 7, 7, 7, 0],
+    #     [7, 7, 7, 7, 0, 8, 8, 1]]),
+    #     np.array([[8, 8, 8, 8, 8, 7, 7, 0],
+    #     [7, 7, 7, 7, 7, 0, 8, 1]]),
+    #     np.array([[8, 8, 8, 8, 8, 8, 7, 0],
+    #     [7, 7, 7, 7, 7, 7, 0, 1]])])),
+    (Game(board=np.array([
+        [1, 1, 2, 2, 2, 2, 1, 19],
+        [1, 2, 1, 2, 0, 2, 0, 60]
+    ], np.int32)), Side.SOUTH, [
+         np.array([[1, 1, 2, 2, 2, 2, 1, 19],
+                [0, 3, 1, 2, 0, 2, 0, 60]], dtype=np.int32),
+         np.array([[1, 1, 2, 2, 2, 0, 1, 19],
+                [0, 0, 2, 3, 0, 2, 0, 63]], dtype=np.int32),
+        np.array([[1, 1, 2, 2, 0, 0, 1, 19],
+         [0, 0, 0, 4, 0, 2, 0, 66]], dtype=np.int32),
+         np.array([[1, 1, 2, 2, 0, 0, 1, 19],
+                [0, 0, 0, 0, 1, 3, 1, 67]], dtype=np.int32),
+        np.array([[2, 1, 2, 2, 0, 0, 1, 19],
+          [0, 0, 0, 0, 1, 0, 2, 68]], dtype=np.int32)])
+]
 
-@pytest.mark.parametrize("game, side, move", test_games)
-def test_monte_carlo_agent_makes_correct_decision(monte_mock_agent, game, side, move):
-    monte_mock_agent.side = side
-    guessedove = monte_mock_agent.decision_engine.get_move()
-    print(guessedove)
-    assert move == guessedove
+test_best_moves = [
+    (Game(board=np.array([
+        [1, 1, 2, 2, 2, 2, 1, 19],
+        [1, 2, 1, 2, 0, 2, 0, 60]
+    ], np.int32)), Side.SOUTH, 1)
+]
+
+@pytest.mark.parametrize("board, side, expected_legal_moves", test_legal_moves)
+def test_monte_carlo_get_legal_moves(monte_mock_agent, board, side, expected_legal_moves):
+    actual_legal_moves = monte_mock_agent.decision_engine.get_legal_moves(board, side)
+    assert np.array_equal(actual_legal_moves, expected_legal_moves)
+
+@pytest.mark.parametrize("game, side, expected_states", test_moves_states)
+def test_monte_carlo_moves_states(monte_mock_agent, game, side, expected_states):
+    actual_legal_moves = monte_mock_agent.decision_engine.get_legal_moves(game, side)
+    actual_states = monte_mock_agent.decision_engine.get_move_states(game.board, actual_legal_moves, side)
+    assert np.array_equal([s[1] for s in actual_states], expected_states)
+
+@pytest.mark.parametrize("game, side, expected_best_move", test_best_moves)
+def test_monte_carlo_best_move(monte_mock_agent, game, side, expected_best_move):
+    actual_legal_moves = monte_mock_agent.decision_engine.get_legal_moves(game, side)
+    actual_states = monte_mock_agent.decision_engine.get_move_states(game.board, actual_legal_moves, side)
+    actual_best_move = monte_mock_agent.decision_engine.get_best_move(side, actual_states)
+    assert actual_best_move == expected_best_move
