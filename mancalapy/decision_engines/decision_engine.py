@@ -3,9 +3,8 @@ class DecisionEngine:
 
     def __init__(self, agent):
         self.agent = agent
-        self.moves_made = 0
 
-    def get_move(self, first=False):
+    def get_move(self):
         raise NotImplementedError()
 
     @classmethod
@@ -51,7 +50,7 @@ class BasicStrategy(DecisionEngine):
     def __init__(self, agent):
         super().__init__(agent)
 
-    def get_move(self, first=False):
+    def get_move(self):
         board_side = self.agent.game[self.agent.side.value]
         for i in range(self.MANKALAH - 1, -1, -1):
             if board_side[i] > 0:
