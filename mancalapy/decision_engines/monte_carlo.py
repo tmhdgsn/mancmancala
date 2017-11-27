@@ -35,12 +35,6 @@ class MonteCarloDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Monte Carlo Engine"
 
-    def hash(self, state):
-        return hash(str(state))
-
-    def get_legal_moves(self, board, side):
-        return board[side.value][:self.MANKALAH].nonzero()[0]
-
     def get_move(self, game=None):
         simulation_count = 0
         begin = datetime.utcnow()

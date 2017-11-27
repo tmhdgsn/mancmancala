@@ -12,18 +12,25 @@ class DecisionEngine:
     def get_move(self, game=None):
         raise NotImplementedError()
 
+    def hash(self, state):
+        return hash(str(state))
+
+    def get_legal_moves(self, board, side):
+        return board[side.value][:self.MANKALAH].nonzero()[0]
+
     @classmethod
     def intermediate_score(cls, board, side):
+        # paper on heuristics: https://fiasco.ittc.ku.edu/publications/documents/Gifford_ITTC-FY2009-TR-03050-03.pdf
+        # H0: Chooses  first valid move(going left to right)
+        # H1: (My Mancala – Opponent’s Mancala)
+        # H2: How close I am to winning
+        # H3: How close my opponent is to winning
+        # H4: #of stones close to my home (1/3)
+        # H5: #of stones away from my home (1/3)
+        # H6: #of stone in the middle (1/3)
         my_mankalah = board[side.value][cls.MANKALAH]
         opponent_mankalah = board[side.opposite().value][cls.MANKALAH]
-        score = 0
-        # if my_mankalah != opponent_mankalah:
-        #     higher_mankalah = max(my_mankalah, opponent_mankalah)
-        #     lower_mankalah = min(my_mankalah, opponent_mankalah)
-        #     score = (1 / higher_mankalah * (higher_mankalah - lower_mankalah) + 1) * higher_mankalah
-        #     return score if higher_mankalah == my_mankalah else score * -1
         return sum(board[side.value]) - sum(board[side.opposite().value])
-        # return score
 
     @classmethod
     def game_over(cls, board):
