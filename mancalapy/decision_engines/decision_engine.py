@@ -9,7 +9,7 @@ class DecisionEngine:
     def __init__(self, agent):
         self.agent = agent
 
-    def get_move(self, game=None, first=False):
+    def get_move(self, game=None):
         raise NotImplementedError()
 
     @classmethod
@@ -29,11 +29,9 @@ class DecisionEngine:
     def game_over(cls, board):
         return np.sum(board[Side.NORTH.value][:-1]) == 0 or np.sum(board[Side.SOUTH.value][:-1]) == 0
 
-    ## TODO: game_score should always be from the agent perspective
-    @classmethod
-    def game_score(cls, board, side):
-        opponent_score = np.sum(board[side.opposite().value])
-        my_score = np.sum(board[side.value])
+    def game_score(self, board):
+        opponent_score = np.sum(board[self.agent.side.opposite().value])
+        my_score = np.sum(board[self.agent.side.value])
         return my_score - opponent_score
 
     @classmethod
@@ -77,7 +75,7 @@ class BasicStrategy(DecisionEngine):
     def __init__(self, agent):
         super().__init__(agent)
 
-    def get_move(self, game=None, first=False):
+    def get_move(self, game=None):
         board_side = self.agent.game[self.agent.side.value]
         for i in range(self.MANKALAH - 1, -1, -1):
             if board_side[i] > 0:
@@ -103,5 +101,5 @@ class AwesomeTactics(DecisionEngine):
     def __str__(self):
         pass
 
-    def get_move(self, first=False):
+    def get_move(self, game=None):
         pass

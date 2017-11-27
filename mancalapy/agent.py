@@ -11,6 +11,8 @@ class Agent:
         self.factory = DecisionEngineFactory(self)
         self.game = Game()
         self.decision_engine = self.factory[engine] if engine in self.factory.engines else self.factory["basic"]
+        self.side = Side.NORTH
+        self.has_moved = False
 
     @classmethod
     def get_msg(cls):
@@ -19,8 +21,12 @@ class Agent:
         args = from_engine.split(";")
         return args[0], args[1:]
 
-    @classmethod
-    def send_msg(cls, msg):
+    def play_move(self, move):
+        if move == "SWAP":
+            msg = "SWAP"
+            self.side = self.side.opposite()
+        else:
+            msg = f"MOVE;{move}"
         log_output(f"from agent: {msg}")
         print(msg)
 
@@ -32,8 +38,6 @@ class Agent:
                 if args[0].upper() == "SOUTH":
                     self.side = Side.SOUTH
                     our_turn = True
-                else:
-                    self.side = Side.NORTH
             if msg_type.upper() == "END":
                 break
             if msg_type.upper() == "CHANGE":
@@ -44,7 +48,8 @@ class Agent:
                 log_output(repr(self.game))
             if our_turn:
                 move = self.decision_engine.get_move()
-                self.send_msg(f"MOVE;{move}")
+                self.play_move(move)
+                self.has_moved = True
 
 
 if __name__ == '__main__':

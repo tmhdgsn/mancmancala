@@ -41,7 +41,7 @@ class MonteCarloDecisionEngine(DecisionEngine):
     def get_legal_moves(self, board, side):
         return board[side.value][:self.MANKALAH].nonzero()[0]
 
-    def get_move(self, game=None, first=False):
+    def get_move(self, game=None):
         simulation_count = 0
         begin = datetime.utcnow()
 
@@ -117,4 +117,4 @@ class MonteCarloDecisionEngine(DecisionEngine):
         for state_hash, state in visited_states.items():
             if state_hash in self.plays:
                 self.plays[state_hash] += 1
-                self.wins[state_hash] = self.game_score(state, self.agent.side)
+                self.wins[state_hash] = self.game_score(state)
