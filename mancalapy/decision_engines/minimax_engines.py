@@ -38,25 +38,20 @@ class MiniMaxDecisionEngine(DecisionEngine):
         if not agent_has_moved and self.agent.side == Side.SOUTH:
             # recurse with swapped side
             self.agent.side = Side.NORTH
-            board_copy = deepcopy(board)
-            _, reward = self.max_min(board_copy, max_depth - 1)
+            _, reward = self.max_min(deepcopy(board), max_depth - 1)
             self.agent.side = Side.SOUTH
             best_r = reward
             best_move = "SWAP"
 
-        for i, hole in enumerate(board[self.agent.side.opposite().value][:self.MANKALAH]):
-            # if Opponent can play then play
-            if hole > 0:
-                board_copy = deepcopy(board)
-                repeat = self.play_hole(i, board_copy, self.agent.side.opposite()) and \
-                        (agent_has_moved and self.agent.side == Side.SOUTH or self.agent.side == Side.NORTH)
-                _, reward = self.min_max(board_copy, max_depth - 1) \
-                    if repeat else self.max_min(board_copy, max_depth - 1)
+        for play in self.get_legal_moves(board, self.agent.side.opposite()):
+            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side.opposite(), board, play)
+            _, reward = self.min_max(next_board, max_depth - 1) \
+                if repeat else self.max_min(next_board, max_depth - 1)
 
-                # minimize the reward
-                if best_move == -1 or reward < best_r:
-                    best_move = i + 1
-                    best_r = reward
+            # minimize the reward
+            if best_move == -1 or reward < best_r:
+                best_move = play + 1
+                best_r = reward
 
         return best_move, best_r
 
@@ -77,26 +72,20 @@ class MiniMaxDecisionEngine(DecisionEngine):
         if not agent_has_moved and self.agent.side == Side.NORTH:
             # recurse with swapped side
             self.agent.side = Side.SOUTH
-            board_copy = deepcopy(board)
-            _, reward = self.min_max(board_copy, max_depth - 1)
+            _, reward = self.min_max(deepcopy(board), max_depth - 1)
             self.agent.side = Side.NORTH
             best_r = reward
             best_play = "SWAP"
 
         # for each hole on my side
-        for i, hole in enumerate(board[self.agent.side.value][:self.MANKALAH]):
-            # if I can play that hole
-            # play it and then let my opponent play
-            if hole > 0:
-                board_copy = deepcopy(board)
-                repeat = self.play_hole(i, board_copy, self.agent.side) and \
-                         (agent_has_moved and self.agent.side == Side.SOUTH or self.agent.side == Side.NORTH)
-                _, reward = self.max_min(board_copy, max_depth - 1) \
-                    if repeat else self.min_max(board_copy, max_depth - 1, agent_has_moved)
-                # maximize the reward
-                if best_play == -1 or reward > best_r:
-                    best_play = i + 1
-                    best_r = reward
+        for play in self.get_legal_moves(board, self.agent.side):
+            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side, board, play)
+            _, reward = self.max_min(next_board, max_depth - 1) \
+                if repeat else self.min_max(next_board, max_depth - 1, agent_has_moved)
+            # maximize the reward
+            if best_play == -1 or reward > best_r:
+                best_play = play + 1
+                best_r = reward
         return best_play, best_r
 
 
@@ -134,31 +123,26 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
         # see if we can get a better result if we swap
         if not agent_has_moved and self.agent.side == Side.SOUTH:
             # recurse with swapped side
-            board_copy = deepcopy(board)
             self.agent.side = Side.NORTH
-            _, reward = self.max_min(board_copy, alpha, beta, max_depth - 1)
+            _, reward = self.max_min(deepcopy(board), alpha, beta, max_depth - 1)
             self.agent.side = Side.SOUTH
             best_r = reward
             beta = min(beta, best_r)
             best_play = "SWAP"
 
-        for i, hole in enumerate(board[self.agent.side.opposite().value][:self.MANKALAH]):
-            # if Opponent can play then play
-            if hole > 0:
-                # copy board and play move
-                board_copy = deepcopy(board)
-                repeat = self.play_hole(i, board_copy, self.agent.side.opposite()) and \
-                         (agent_has_moved and self.agent.side == Side.SOUTH or self.agent.side == Side.NORTH)
-                _, reward = self.min_max(board_copy, alpha, beta, max_depth - 1) \
-                    if repeat else self.max_min(board_copy, alpha, beta, max_depth - 1)
+        for play in self.get_legal_moves(board, self.agent.side.opposite()):
+            # copy board and play move
+            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side.opposite(), board, play)
+            _, reward = self.min_max(next_board, alpha, beta, max_depth - 1) \
+                if repeat else self.max_min(next_board, alpha, beta, max_depth - 1)
 
-                # minimize the reward
-                if best_play == -1 or reward < best_r:
-                    best_play = i + 1
-                    best_r = reward
-                beta = min(beta, best_r)
-                if best_r <= alpha:
-                    return best_play, best_r
+            # minimize the reward
+            if best_play == -1 or reward < best_r:
+                best_play = play + 1
+                best_r = reward
+            beta = min(beta, best_r)
+            if best_r <= alpha:
+                return best_play, best_r
         return best_play, best_r
 
     def max_min(self, board, alpha, beta, max_depth=3, agent_has_moved=True):
@@ -176,32 +160,25 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
 
         # see if we can get a better result by swapping as first move
         if not agent_has_moved and self.agent.side == Side.NORTH:
-            board_copy = deepcopy(board)
             # recurse with swapped side
             self.agent.side = Side.SOUTH
-            _, reward = self.min_max(board_copy, alpha, beta, max_depth - 1)
+            _, reward = self.min_max(deepcopy(board), alpha, beta, max_depth - 1)
             self.agent.side = Side.NORTH
             best_r = reward
             best_play = "SWAP"
             alpha = max(alpha, best_r)
 
         # for each hole on my side
-        for i, hole in enumerate(board[self.agent.side.value][:self.MANKALAH]):
-            # if I can play that hole
-            # play it and then let my opponent play
-            if hole > 0:
-                # copy board and make move
-                board_copy = deepcopy(board)
-                repeat = self.play_hole(i, board_copy, self.agent.side) and \
-                         (agent_has_moved and self.agent.side == Side.SOUTH or self.agent.side == Side.NORTH)
-                _, reward = self.max_min(board_copy, alpha, beta, max_depth - 1) \
-                    if repeat else self.min_max(board_copy, alpha, beta, max_depth - 1, agent_has_moved)
+        for play in self.get_legal_moves(board, self.agent.side):
+            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side, board, play)
+            _, reward = self.max_min(next_board, alpha, beta, max_depth - 1) \
+                if repeat else self.min_max(next_board, alpha, beta, max_depth - 1, agent_has_moved)
 
-                # maximize the reward
-                if best_play == -1 or reward > best_r:
-                    best_play = i + 1
-                    best_r = reward
-                alpha = max(alpha, best_r)
-                if best_r >= beta:
-                    return best_play, best_r
+            # maximize the reward
+            if best_play == -1 or reward > best_r:
+                best_play = play + 1
+                best_r = reward
+            alpha = max(alpha, best_r)
+            if best_r >= beta:
+                return best_play, best_r
         return best_play, best_r

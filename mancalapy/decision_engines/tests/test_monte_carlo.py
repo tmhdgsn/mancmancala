@@ -39,16 +39,16 @@ test_moves_states = [
         [1, 1, 2, 2, 2, 2, 1, 19],
         [1, 2, 1, 2, 0, 2, 0, 60]
     ], np.int32)), Side.SOUTH,
-     [np.array([[ 1,  1,  2,  2,  2,  2,  1, 19],
-       [ 0,  3,  1,  2,  0,  2,  0, 60]], dtype=np.int32),
-      np.array([[ 1,  1,  2,  2,  2,  2,  1, 19],
-       [ 1,  0,  2,  3,  0,  2,  0, 60]], dtype=np.int32),
-      np.array([[ 1,  1,  2,  2,  2,  2,  1, 19],
-       [ 1,  2,  0,  3,  0,  2,  0, 60]], dtype=np.int32),
-      np.array([[ 1,  1,  2,  2,  2,  2,  1, 19],
-       [ 1,  2,  1,  0,  1,  3,  0, 60]], dtype=np.int32),
-      np.array([[ 1,  1,  2,  2,  2,  2,  1, 19],
-       [ 1,  2,  1,  2,  0,  0,  1, 61]], dtype=np.int32)]
+     [np.array([[1, 1, 2, 2, 2, 2, 1, 19],
+                [0, 3, 1, 2, 0, 2, 0, 60]], dtype=np.int32),
+      np.array([[1, 1, 2, 2, 2, 2, 1, 19],
+                [1, 0, 2, 3, 0, 2, 0, 60]], dtype=np.int32),
+      np.array([[1, 1, 2, 2, 2, 2, 1, 19],
+                [1, 2, 0, 3, 0, 2, 0, 60]], dtype=np.int32),
+      np.array([[1, 1, 2, 2, 2, 2, 1, 19],
+                [1, 2, 1, 0, 1, 3, 0, 60]], dtype=np.int32),
+      np.array([[1, 1, 2, 2, 2, 2, 1, 19],
+                [1, 2, 1, 2, 0, 0, 1, 61]], dtype=np.int32)]
     )
 ]
 
@@ -59,16 +59,19 @@ test_best_moves = [
     ], np.int32)), Side.SOUTH, 1)
 ]
 
+
 @pytest.mark.parametrize("board, side, expected_legal_moves", test_legal_moves)
 def test_monte_carlo_get_legal_moves(monte_mock_agent, board, side, expected_legal_moves):
     actual_legal_moves = monte_mock_agent.decision_engine.get_legal_moves(board, side)
     assert np.array_equal(actual_legal_moves, expected_legal_moves)
+
 
 @pytest.mark.parametrize("game, side, expected_states", test_moves_states)
 def test_monte_carlo_moves_states(monte_mock_agent, game, side, expected_states):
     actual_legal_moves = monte_mock_agent.decision_engine.get_legal_moves(game, side)
     actual_states = monte_mock_agent.decision_engine.get_move_states(game.board, actual_legal_moves, side)
     assert np.array_equal([s[1] for s in actual_states], expected_states)
+
 
 @pytest.mark.parametrize("game, side, expected_best_move", test_best_moves)
 def test_monte_carlo_best_move(monte_mock_agent, game, side, expected_best_move):

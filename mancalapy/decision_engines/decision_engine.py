@@ -1,4 +1,5 @@
 import numpy as np
+from copy import deepcopy
 
 from side import Side
 
@@ -7,6 +8,7 @@ class DecisionEngine:
     MANKALAH = 7
 
     def __init__(self, agent):
+        self.cache = {}
         self.agent = agent
 
     def get_move(self, game=None):
@@ -41,6 +43,17 @@ class DecisionEngine:
         my_score = np.sum(board[self.agent.side.value])
         return my_score - opponent_score
 
+    def get_next_boards(self, agent_has_moved, side, board, play):
+        board_hash = self.hash(board)
+        if board_hash not in self.cache:
+            self.cache[board_hash] = {}
+        if play not in self.cache[board_hash]:
+            board_copy = deepcopy(board)
+            repeat = self.play_hole(play, board_copy, side) and (agent_has_moved or self.agent.side == Side.NORTH)
+            self.cache[board_hash][play] = (board_copy, repeat)
+            return board_copy, repeat
+        return self.cache[board_hash][play]
+
     @classmethod
     def play_hole(cls, hole, board_copy, agent_side):
         seeds = board_copy[agent_side.value][hole]
@@ -61,8 +74,9 @@ class DecisionEngine:
 
         opposite_hole = cls.MANKALAH - 1 - hole
         # check if we can capture opponents pieces
-        if cur_hole != cls.MANKALAH and current_side == agent_side and board_copy[current_side.value][cur_hole] == 0 and \
-                board_copy[current_side.opposite().value][opposite_hole] > 0:
+        if cur_hole != cls.MANKALAH and current_side == agent_side \
+                and board_copy[current_side.value][cur_hole] == 0 \
+                and board_copy[current_side.opposite().value][opposite_hole] > 0:
             captured_seeds = board_copy[current_side.opposite().value][opposite_hole]
             board_copy[current_side.opposite().value][opposite_hole] = 0
             board_copy[current_side.value][cls.MANKALAH] += captured_seeds + 1  # current seed
