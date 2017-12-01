@@ -11,17 +11,17 @@ class DecisionEngine:
         self.cache = {}
         self.agent = agent
 
-    def get_move(self, game=None):
+    def get_move(self, game=None) -> int:
         raise NotImplementedError()
 
-    def hash(self, state):
+    def hash(self, state) -> hash:
         return hash(str(state))
 
-    def get_legal_moves(self, board, side):
+    def get_legal_moves(self, board, side) -> np.array:
         return board[side.value][:self.MANKALAH].nonzero()[0]
 
     @classmethod
-    def intermediate_score(cls, board, side):
+    def intermediate_score(cls, board, side) -> float:
         # paper on heuristics: https://fiasco.ittc.ku.edu/publications/documents/Gifford_ITTC-FY2009-TR-03050-03.pdf
         # H0: Chooses  first valid move(going left to right)
         # H1: (My Mancala – Opponent’s Mancala)
@@ -38,12 +38,13 @@ class DecisionEngine:
     def game_over(cls, board):
         return np.sum(board[Side.NORTH.value][:-1]) == 0 or np.sum(board[Side.SOUTH.value][:-1]) == 0
 
-    def game_score(self, board):
+    # TODO correctly annotate the return type
+    def game_score(self, board) -> np.ndarray:
         opponent_score = np.sum(board[self.agent.side.opposite().value])
         my_score = np.sum(board[self.agent.side.value])
         return my_score - opponent_score
 
-    def get_next_boards(self, agent_has_moved, side, board, play):
+    def get_next_boards(self, agent_has_moved, side, board, play) -> (np.array, bool):
         board_hash = self.hash(board)
         if board_hash not in self.cache:
             self.cache[board_hash] = {}
@@ -55,7 +56,7 @@ class DecisionEngine:
         return self.cache[board_hash][play]
 
     @classmethod
-    def play_hole(cls, hole, board_copy, agent_side):
+    def play_hole(cls, hole, board_copy, agent_side) -> bool:
         seeds = board_copy[agent_side.value][hole]
         board_copy[agent_side.value][hole] = 0
         cur_hole = (hole + 1)

@@ -15,13 +15,13 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, game=None, depth=None):
+    def get_move(self, game=None, depth=None) -> int:
         game = game if game else self.agent.game
         depth = depth if depth else self.depth
         move, reward = self.max_min(game, max_depth=depth, agent_has_moved=self.agent.has_moved)
         return move
 
-    def min_max(self, board, max_depth=3, agent_has_moved=True):
+    def min_max(self, board, max_depth=3, agent_has_moved=True) -> (int, float):
         # if the sum of all holes - mankalah is 0 game over
         if self.game_over(board):
             return -1, self.game_score(board)
@@ -41,7 +41,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
             _, reward = self.max_min(deepcopy(board), max_depth - 1)
             self.agent.side = Side.SOUTH
             best_r = reward
-            best_move = "SWAP"
+            best_move = -1
 
         for play in self.get_legal_moves(board, self.agent.side.opposite()):
             next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side.opposite(), board, play)
@@ -49,13 +49,13 @@ class MiniMaxDecisionEngine(DecisionEngine):
                 if repeat else self.max_min(next_board, max_depth - 1)
 
             # minimize the reward
-            if best_move == -1 or reward < best_r:
+            if reward < best_r:
                 best_move = play + 1
                 best_r = reward
 
         return best_move, best_r
 
-    def max_min(self, board, max_depth=3, agent_has_moved=True):
+    def max_min(self, board, max_depth=3, agent_has_moved=True) -> (int, float):
         # if the sum of all holes - mankalah is 0 game over
         if self.game_over(board):
             return -1, self.game_score(board)
@@ -75,7 +75,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
             _, reward = self.min_max(deepcopy(board), max_depth - 1)
             self.agent.side = Side.NORTH
             best_r = reward
-            best_play = "SWAP"
+            best_play = -1
 
         # for each hole on my side
         for play in self.get_legal_moves(board, self.agent.side):
@@ -83,7 +83,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
             _, reward = self.max_min(next_board, max_depth - 1) \
                 if repeat else self.min_max(next_board, max_depth - 1, agent_has_moved)
             # maximize the reward
-            if best_play == -1 or reward > best_r:
+            if reward > best_r:
                 best_play = play + 1
                 best_r = reward
         return best_play, best_r
@@ -100,14 +100,14 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "AlphaBetaMinimax Engine"
 
-    def get_move(self, game=None, depth=None):
+    def get_move(self, game=None, depth=None) -> int:
         game = game if game else self.agent.game
         depth = depth if depth else self.depth
         move, reward = self.max_min(game, alpha=-float('inf'), beta=float('inf'), max_depth=depth,
                                     agent_has_moved=self.agent.has_moved)
         return move
 
-    def min_max(self, board, alpha, beta, max_depth=3, agent_has_moved=True):
+    def min_max(self, board, alpha, beta, max_depth=3, agent_has_moved=True) -> (int, float):
         # if the sum of all holes - mankalah is 0 game over
         if self.game_over(board):
             return -1, self.game_score(board)
@@ -128,7 +128,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
             self.agent.side = Side.SOUTH
             best_r = reward
             beta = min(beta, best_r)
-            best_play = "SWAP"
+            best_play = -1
 
         for play in self.get_legal_moves(board, self.agent.side.opposite()):
             # copy board and play move
@@ -137,7 +137,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
                 if repeat else self.max_min(next_board, alpha, beta, max_depth - 1)
 
             # minimize the reward
-            if best_play == -1 or reward < best_r:
+            if reward < best_r:
                 best_play = play + 1
                 best_r = reward
             beta = min(beta, best_r)
@@ -145,7 +145,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
                 return best_play, best_r
         return best_play, best_r
 
-    def max_min(self, board, alpha, beta, max_depth=3, agent_has_moved=True):
+    def max_min(self, board, alpha, beta, max_depth=3, agent_has_moved=True) -> (int, float):
         # if the sum of all holes - mankalah is 0 game over
         if self.game_over(board):
             return -1, self.game_score(board)
@@ -165,8 +165,8 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
             _, reward = self.min_max(deepcopy(board), alpha, beta, max_depth - 1)
             self.agent.side = Side.NORTH
             best_r = reward
-            best_play = "SWAP"
             alpha = max(alpha, best_r)
+            best_play = -1
 
         # for each hole on my side
         for play in self.get_legal_moves(board, self.agent.side):
@@ -175,7 +175,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
                 if repeat else self.min_max(next_board, alpha, beta, max_depth - 1, agent_has_moved)
 
             # maximize the reward
-            if best_play == -1 or reward > best_r:
+            if reward > best_r:
                 best_play = play + 1
                 best_r = reward
             alpha = max(alpha, best_r)

@@ -18,4 +18,3 @@ class DecisionEngineFactory:
 
     def __getitem__(self, item):
         return self.engines[item]
-

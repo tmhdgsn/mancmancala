@@ -5,6 +5,8 @@ from agent import Agent
 from game import Game
 from side import Side
 
+SWAP = -1
+
 
 @pytest.fixture(scope="function")
 def minimax_mock_agent():
@@ -21,7 +23,7 @@ test_games = [
     (Game(board=np.array([
         [7, 7, 7, 7, 7, 7, 7, 0],
         [0, 8, 8, 8, 8, 8, 8, 1]
-    ])), Side.NORTH, False, "SWAP"),
+    ])), Side.NORTH, False, SWAP),
     (Game(board=np.array([
         [0, 0, 0, 0, 0, 2, 7, 18],
         [0, 20, 13, 13, 12, 12, 0, 1]

@@ -22,7 +22,7 @@ class Agent:
         return args[0], args[1:]
 
     def play_move(self, move):
-        if move == "SWAP":
+        if move == -1:
             msg = "SWAP"
             self.side = self.side.opposite()
         else:
