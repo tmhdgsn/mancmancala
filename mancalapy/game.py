@@ -24,3 +24,4 @@ def update_board(board, raw_state):
     state = raw_state.split(",")
     board[Side.NORTH.value] = np.array(list(map(int, state[:8])))
     board[Side.SOUTH.value] = np.array(list(map(int, state[8:])))
+
