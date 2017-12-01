@@ -98,7 +98,7 @@ class BasicStrategy(DecisionEngine):
         super().__init__(agent)
 
     def get_move(self, game=None):
-        board_side = self.agent.game[self.agent.side.value]
+        board_side = self.agent.board[self.agent.side.value]
         for i in range(self.MANKALAH - 1, -1, -1):
             if board_side[i] > 0:
                 return i + 1

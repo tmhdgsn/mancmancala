@@ -1,7 +1,7 @@
+from io import StringIO
 from unittest import mock
 
 import pytest
-from io import StringIO
 
 from agent import Agent
 from side import Side

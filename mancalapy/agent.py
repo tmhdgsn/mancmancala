@@ -1,7 +1,7 @@
 import sys
 
 from decision_engines import DecisionEngineFactory
-from game import Game
+from game import create_board, update_board
 from side import Side
 from util import log_output
 
@@ -9,7 +9,7 @@ from util import log_output
 class Agent:
     def __init__(self, engine):
         self.factory = DecisionEngineFactory(self)
-        self.game = Game()
+        self.board = create_board()
         self.decision_engine = self.factory[engine] if engine in self.factory.engines else self.factory["basic"]
         self.side = Side.NORTH
         self.has_moved = False
@@ -42,10 +42,10 @@ class Agent:
                 break
             if msg_type.upper() == "CHANGE":
                 our_turn = args[-1].upper() == "YOU"
-                self.game.update_board(args[-2])
+                update_board(self.board, args[-2])
                 if args[0].upper() == "SWAP":
                     self.side = self.side.opposite()
-                log_output(repr(self.game))
+                log_output(repr(self.board))
             if our_turn:
                 move = self.decision_engine.get_move()
                 self.play_move(move)

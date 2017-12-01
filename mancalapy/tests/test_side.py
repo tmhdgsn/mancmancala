@@ -9,7 +9,3 @@ def test_opposite():
     side = Side.SOUTH
 
     assert side.opposite() == Side.NORTH
-
-
-if __name__ == '__main__':
-    test_opposite()

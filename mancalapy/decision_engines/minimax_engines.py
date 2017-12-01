@@ -15,10 +15,10 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, game=None, depth=None) -> int:
-        game = game if game else self.agent.game
+    def get_move(self, board=None, depth=None) -> int:
+        board = board if board is not None else self.agent.board
         depth = depth if depth else self.depth
-        move, reward = self.max_min(game, max_depth=depth, agent_has_moved=self.agent.has_moved)
+        move, reward = self.max_min(board, max_depth=depth, agent_has_moved=self.agent.has_moved)
         return move
 
     def min_max(self, board, max_depth=3, agent_has_moved=True) -> (int, float):
@@ -100,10 +100,10 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "AlphaBetaMinimax Engine"
 
-    def get_move(self, game=None, depth=None) -> int:
-        game = game if game else self.agent.game
+    def get_move(self, board=None, depth=None) -> int:
+        board = board if board is not None else self.agent.board
         depth = depth if depth else self.depth
-        move, reward = self.max_min(game, alpha=-float('inf'), beta=float('inf'), max_depth=depth,
+        move, reward = self.max_min(board, alpha=-float('inf'), beta=float('inf'), max_depth=depth,
                                     agent_has_moved=self.agent.has_moved)
         return move
 
