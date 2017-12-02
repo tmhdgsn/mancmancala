@@ -10,6 +10,7 @@ class Agent:
     def __init__(self, engine):
         self.factory = DecisionEngineFactory(self)
         self.game = Game()
+        self.side = Side.NORTH
         self.decision_engine = self.factory[engine] if engine in self.factory.engines else self.factory["basic"]
 
     @classmethod
@@ -39,7 +40,7 @@ class Agent:
             if msg_type.upper() == "CHANGE":
                 our_turn = args[-1].upper() == "YOU"
                 self.game.update_board(args[-2])
-                if args[0].upper() == "SWAP":
+                if args[1].upper() == "SWAP":
                     self.side = self.side.opposite()
                 log_output(repr(self.game))
             if our_turn:
