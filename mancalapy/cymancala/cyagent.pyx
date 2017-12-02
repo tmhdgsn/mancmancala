@@ -1,20 +1,18 @@
 import numpy as np
 cimport numpy as np
 import sys
-
+from cydecision_engines.cyDecision_factory import CyDecisionEngineFactory
 from cydecision_engines.cydecision_engine import CyDecisionEngine
-from cygame import mk_board
+from cygame import create_board
 from cyside import Side, opposite
 
-cdef class Agent:
-    cdef np.ndarray board
-    cdef int side
-    cdef CyDecisionEngine engine
-    def __init__(self, CyDecisionEngine engine):
-        self.board = mk_board(7, 7)
+class Agent:
+    def __init__(self, engine):
+        self.board = create_board(7, 7)
         self.side = Side.SOUTH
-        self.engine = engine
-
+        self.factory = CyDecisionEngineFactory(self)
+        self.engine = self.factory[engine]
+        self.has_moved = False
 
     @classmethod
     def get_msg(cls):
@@ -27,12 +25,12 @@ cdef class Agent:
     def send_msg(cls, msg):
         print(msg)
 
-    cdef update_board(self, str raw_state):
+    def update_board(self, str raw_state):
         cdef str board_state = raw_state.split(",")
         self.board[Side.NORTH] = np.array(list(map(int, board_state[:8])))
         self.board[Side.SOUTH.value] = np.array(list(map(int, board_state[8:])))
 
-    cdef play(self):
+    def play(self):
         our_turn = False
         while True:
             msg_type, args = self.get_msg()
@@ -54,9 +52,3 @@ cdef class Agent:
                 self.send_msg(f"MOVE;{move}")
 
 
-if __name__ == '__main__':
-    agent = Agent("ab_minimax")
-    if len(sys.argv) > 1:
-        if sys.argv[1] in agent.factory.engines:
-            agent = Agent(sys.argv[1])
-    agent.play()
