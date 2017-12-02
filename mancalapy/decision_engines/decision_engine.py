@@ -12,7 +12,7 @@ class DecisionEngine:
         self.agent = agent
 
     def get_move(self, game=None) -> int:
-        raise ()
+        raise NotImplementedError()
 
     def hash(self, state) -> hash:
         return hash(str(state))
