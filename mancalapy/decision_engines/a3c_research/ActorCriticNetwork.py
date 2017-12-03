@@ -1,63 +1,71 @@
 import tensorflow as tf
 
-from decision_engines.a3c_research import game_env
+import numpy as np
 
 
 class ActorCriticNetwork:
-    def __init__(self, param_names="best_weights"):
-        lstm_size = 512
-        lstm_layers = 1  # Could be changed later on with the size
-        learning_rate = 0.001
-        num_outputs = 400
+    def __init__(self, num_of_actions=7, encoded_board_size=400, lstm_layers=1, lstm_size=512, param_file=None):
+        self.graph = tf.Graph()
 
-        # Probability for dropout
-        self.inputs = tf.placeholder(tf.int32, [None, None],name='inputs')  # Dimensions of this will be 1 x 17 for each of the states
-        self.dropout_prob = tf.placeholder(tf.float32, name='keep_prob')
+        self.num_outputs = encoded_board_size
+        self.num_of_actions = num_of_actions  # Get the probability just for our side of the board
+        self.state = None
+        self.lstm_layers = lstm_layers
+        self.lstm_size = lstm_size
+        self.initialize_graph(self.graph)
+        self.sess = tf.Session(graph=self.graph)
+        self.sess.run(self.init_graph)
+        # if we have weights
+        # load weights
+        # if param_file:
+        #     saver = tf.train.Saver()
+        #     saver.restore(self.sess, param_file)
 
-        # Let the activation function be RELu, we can play with it later on
-        # Automatically creates weights with the help of the Xavier Initializer
-        # https://www.tensorflow.org/api_docs/python/tf/contrib/layers/fully_connected
-        self.encoded_inputs = tf.contrib.layers.fully_connected(self.inputs, num_outputs)
+    def initialize_graph(self, graph):
+        with graph.as_default():
+            # Probability for dropout
+            self.inputs = tf.placeholder(tf.float32, [None, 17],
+                                         name='inputs')  # Dimensions of this will be 1 x 17 for each of the states
+            self.dropout_prob = tf.placeholder(tf.float32, name='keep_prob')
 
-        # Forming an LSTM Layer
-        self.lstm = tf.contrib.rnn.BasicLSTMCell(lstm_size)
-        self.drop = tf.contrib.rnn.DropoutWrapper(self.lstm, output_keep_prob=self.dropout_prob)
-        self.cell = tf.contrib.rnn.MultiRNNCell([self.drop] * lstm_layers)
-        self.initial_state = self.cell.zero_state(num_outputs, tf.float32)
+            # Let the activation function be RELu, we can play with it later on
+            # Automatically creates weights with the help of the Xavier Initializer
+            # https://www.tensorflow.org/api_docs/python/tf/contrib/layers/fully_connected
+            encoded_inputs = tf.contrib.layers.fully_connected(self.inputs, self.num_outputs)
+            rnn_inputs = tf.reshape(encoded_inputs, (1, 400, 1))
+            # Forming an LSTM Layer
+            lstm = tf.contrib.rnn.BasicLSTMCell(self.lstm_size)
+            drop = tf.contrib.rnn.DropoutWrapper(lstm, output_keep_prob=self.dropout_prob)
+            cell = tf.contrib.rnn.MultiRNNCell([drop] * self.lstm_layers)
+            self.state = cell.zero_state(1, tf.float32)  # self.state if self.state else
 
-        # Get the outputs and the final_state, which need to be fed in the Value and Policy network
-        # final state comprises of c and h
-        self.outputs, final_state = tf.nn.dynamic_rnn(self.cell, self.encoded_inputs, initial_state=self.initial_state)
+            # Get the outputs and the final_state, which need to be fed in the Value and Policy network
+            # final state comprises of c and h
+            outputs, state = tf.nn.dynamic_rnn(
+                cell, rnn_inputs, initial_state=self.state
+            )
 
-        self.num_actor_outputs = 7  # Since we need the probability of the full board
-        self.critic_output = tf.contrib.layers.fully_connected(self.outputs, 1, activation_fn=None)
-        self.actor_output = tf.contrib.layers.fully_connected(
-            self.outputs, self.num_actor_outputs, activation_fn=tf.nn.softmax
-        )
+            self.critic_output = tf.contrib.layers.fully_connected(
+                outputs, 1, activation_fn=None
+            )
+            self.actor_output = tf.contrib.layers.fully_connected(
+                outputs, self.num_of_actions, activation_fn=tf.nn.softmax
+            )
+            self.init_graph = tf.global_variables_initializer()
 
-    def __call__(self, *args, **kwargs) -> int:
-        action = -1
-        with tf.Session() as sess:
-            # take the input state from the args
-            # feed it into model
-            # get back an action
-            pass
+    def __call__(self, game_board, *args, **kwargs) -> np.array:
+        feed = {
+            self.inputs: game_board,
+            self.dropout_prob: kwargs.get("dropout_prob", 0.2),
+        }
+        critic_output, actor_output = self.sess.run([self.critic_output, self.actor_output], feed_dict=feed)
 
-            logits = 1  # dummy of all actions
-            tf.nn.softmax(logits)
+        return critic_output, actor_output
 
-        return action
-
-    def fit(self, nbepochs=50, steps=30, is_global=False,):
-        for epoch in range(nbepochs):
-            # sync local params with global model
-            # initialize LSTM cell / H(output)
-
-            values = []
-            rewards = []
-            log_prob = []
-            entropies = []
-            state = game_env.reset()
-            for step in range(steps):
-                # state =
-                pass
+    def exit(self):
+        """
+        Closes session if open,
+        tensorflow already has a isOpen check
+        :return:
+        """
+        self.sess.close()

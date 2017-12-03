@@ -2,11 +2,11 @@ import numpy as np
 
 from side import Side
 from decision_engines.decision_engine import DecisionEngine
-from decision_engines.a3c_engine import AC3DecisionEngine
+from decision_engines.a3c_engine import A3CDecisionEngine
 
 
 def reset():
-    return np.array([7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0, 1])
+    return np.array([[7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0, 1]])
 
 
 def score(init_game_state, new_state):
@@ -32,15 +32,16 @@ def step(init_game_state, action):
     :return:
     """
 
+    init_game_state = init_game_state[0]
     # last index is side
     side = Side(init_game_state[-1])
     board = np.reshape(init_game_state[:-1], (2, 8))
     repeat_go = DecisionEngine.play_hole(action, board, side)
     side = side if repeat_go else side.opposite()
-    new_state = AC3DecisionEngine.flatten_game(board, side)
+    new_state = A3CDecisionEngine.flatten_game(board, side)
 
     # calculate reward
-    reward = score(init_game_state, new_state)
+    reward = score(init_game_state, new_state[0])
 
     # game_over
     game_over = DecisionEngine.game_over(board)
