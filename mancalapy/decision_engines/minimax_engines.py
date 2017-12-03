@@ -28,7 +28,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
-            return -1, self.intermediate_score(board, self.agent.side)
+            return -1, self.intermediate_score(board)
 
         # initialize best reward and best play
         best_r = float("inf")
@@ -62,7 +62,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
-            return -1, self.intermediate_score(board, self.agent.side)
+            return -1, self.intermediate_score(board)
 
         # initialize best reward and best play
         best_r = -float('inf')
@@ -114,28 +114,30 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
-            return -1, self.intermediate_score(board, self.agent.side)
+            return -1, self.intermediate_score(board)
 
         # initialize best reward and best play
         best_r = float('inf')
         best_play = -1
 
+        init_reward = self.intermediate_score(board)
         # see if we can get a better result if we swap
         if not agent_has_moved and self.agent.side == Side.SOUTH:
             # recurse with swapped side
             self.agent.side = Side.NORTH
             _, reward = self.max_min(deepcopy(board), alpha, beta, max_depth - 1)
             self.agent.side = Side.SOUTH
-            best_r = reward
+            best_r = reward - init_reward
             beta = min(beta, best_r)
             best_play = -1
 
         for play in self.get_legal_moves(board, self.agent.side.opposite()):
             # copy board and play move
-            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side.opposite(), board, play)
+            next_board, repeat = self.get_next_boards(True, self.agent.side.opposite(), board, play)
             _, reward = self.min_max(next_board, alpha, beta, max_depth - 1) \
                 if repeat else self.max_min(next_board, alpha, beta, max_depth - 1)
 
+            reward -= init_reward
             # minimize the reward
             if reward < best_r:
                 best_play = play + 1
@@ -152,19 +154,20 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
 
         # shitty depth control to prevent death of CPU
         if max_depth == 0:
-            return -1, self.intermediate_score(board, self.agent.side)
+            return -1, self.intermediate_score(board)
 
         # initialize best reward and best play
         best_r = -float('inf')
         best_play = -1
 
+        init_reward = self.intermediate_score(board)
         # see if we can get a better result by swapping as first move
         if not agent_has_moved and self.agent.side == Side.NORTH:
             # recurse with swapped side
             self.agent.side = Side.SOUTH
             _, reward = self.min_max(deepcopy(board), alpha, beta, max_depth - 1)
             self.agent.side = Side.NORTH
-            best_r = reward
+            best_r = reward - init_reward
             alpha = max(alpha, best_r)
             best_play = -1
 
@@ -174,6 +177,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
             _, reward = self.max_min(next_board, alpha, beta, max_depth - 1) \
                 if repeat else self.min_max(next_board, alpha, beta, max_depth - 1, agent_has_moved)
 
+            reward -= init_reward
             # maximize the reward
             if reward > best_r:
                 best_play = play + 1
