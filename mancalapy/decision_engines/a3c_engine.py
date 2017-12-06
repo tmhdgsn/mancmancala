@@ -1,5 +1,5 @@
 from decision_engines import DecisionEngine
-from decision_engines.a3c_research.ActorCriticNetwork import ActorCriticNetwork
+from decision_engines.a3c_research.a3c_model import ActorCriticNetwork
 import numpy as np
 
 
