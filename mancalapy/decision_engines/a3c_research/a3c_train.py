@@ -1,10 +1,13 @@
-import multiprocessing as mp
-
+import logging
 import numpy as np
 import tensorflow as tf
 
 from decision_engines.a3c_research import game_env as env
 from decision_engines.a3c_research.a3c_model import ActorCriticNetwork
+
+LOGGING_FORMAT = '%(episode_count)  %(policy_loss)  %(value_loss)'
+logging.basicConfig(format=LOGGING_FORMAT)
+logger = logging.getLogger('loss')
 
 
 # Copies one set of variables to another.
@@ -25,20 +28,22 @@ class Worker(ActorCriticNetwork):
         self.lr = kwargs.get("lr", 0.001)
         self.trainer = kwargs.get("trainer", tf.train.AdamOptimizer(learning_rate=self.lr))
         super().__init__(*args, **kwargs)
+        self.sess = kwargs.get("sess")
 
     def initialize_scope(self, graph):
         super().initialize_scope(graph)
         # sync with global model
         self.update_local_ops = update_target_graph('global', self.scope_name)
 
-        self.actions = tf.placeholder(shape=[None], dtype=tf.int32)
-        self.target_v = tf.placeholder(shape=[None], dtype=tf.float32)
-        self.advantages = tf.placeholder(shape=[None], dtype=tf.float32)
+        self.actions = tf.placeholder(dtype=tf.int32)
+        self.target_v = tf.placeholder(dtype=tf.float32)
+        # self.advantages = tf.placeholder(dtype=tf.float32)
+        self.generalized_advantage = tf.placeholder(dtype=tf.float32)
 
         # Loss functions
         self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.critic_output, [-1])))
         self.entropy = - tf.reduce_sum(self.actor_output * tf.log(self.actor_output))
-        self.policy_loss = -tf.reduce_sum(tf.log(self.actor_output) * self.advantages)
+        self.policy_loss = -tf.reduce_sum(tf.log(self.actor_output) * self.generalized_advantage)
         self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.01
 
         # Get gradients from local network using local losses
@@ -51,13 +56,13 @@ class Worker(ActorCriticNetwork):
         global_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
         self.apply_grads = self.trainer.apply_gradients(zip(grads, global_vars))
 
-    def work(self, max_episode_length, gamma, coord, saver):
+    def work(self, max_episode_length, gamma, saver):
         total_steps = 0
         sess = self.sess
         with sess.as_default(), sess.graph.as_default():
             episode_count = 0
             episode_rewards = []
-            while not coord.should_stop():
+            for i in range(max_episode_length):
                 # copy the local params from the global network
                 sess.run(self.update_local_ops)
                 episode_buffer = []
@@ -71,7 +76,7 @@ class Worker(ActorCriticNetwork):
                 episode_frames.append(init_game_state)
                 rnn_state = self.state
                 while not game_over:
-                    # Take an action using probabilities from policy network output.
+                    # get an action distribution and estimate value from policy
                     action_distribution, estimated_value, rnn_state = sess.run(
                         [self.actor_output, self.critic_output, self.state],
                         feed_dict={
@@ -79,13 +84,25 @@ class Worker(ActorCriticNetwork):
                             self.dropout_prob: 0.2,
                             # self.state: rnn_state,
                         })
+
+                    # select action
                     action = int(np.argmax(action_distribution))
+
+                    # play action on game
                     next_game_state, reward, game_over = env.step(init_game_state, action)
 
+                    # save game transition and estimated value
                     episode_buffer.append(
-                        [init_game_state, action, reward, next_game_state, game_over, estimated_value])
-                    episode_values.append(estimated_value)
+                        [
+                            init_game_state,
+                            action,
+                            reward,
+                            next_game_state,
+                            game_over,
+                            estimated_value
+                        ])
 
+                    # add reward for episode + update state
                     episode_reward += reward
                     init_game_state = next_game_state
                     total_steps += 1
@@ -94,112 +111,57 @@ class Worker(ActorCriticNetwork):
                     # If the episode hasn't ended, but the experience buffer is full, then we
                     # make an update step using that experience rollout.
                     if len(episode_buffer) == 30 and not game_over and episode_step_count != max_episode_length - 1:
-                        # Since we don't know what the true final return is, we "bootstrap" from our current
-                        # value estimation.
-                        intermediate_value_guess = sess.run(self.critic_output,
-                                                            feed_dict={
-                                                                self.inputs: init_game_state.T,
-                                                                self.dropout_prob: 0.2,
-                                                                # self.state: rnn_state,
-                                                            })
-
-                        value_loss, policy_loss, entropy_loss, gradients, variance = \
-                            self.update_params(episode_buffer, sess, gamma, intermediate_value_guess)
+                        value_loss, policy_loss, entropy_loss, gradients, variance = self.update_params(
+                            episode_buffer, sess, gamma
+                        )
                         episode_buffer = []
                         sess.run(self.update_local_ops)
-                    if game_over:
-                        break
-
-                # self.episode_rewards.append(episode_reward)
-                # self.episode_lengths.append(episode_step_count)
-                # self.episode_mean_values.append(np.mean(episode_values))
 
                 # Update the network using the episode buffer at the end of the episode.
                 if len(episode_buffer) != 0:
                     value_loss, policy_loss, entropy_loss, gradients, variance = self.update_params(episode_buffer,
-                                                                                                    sess, gamma, 0.0)
+                                                                                                    sess, gamma)
+                    logger_values = {
+                        'episode_count': episode_count,
+                        'value_loss': value_loss, 'policy_loss': policy_loss
+                    }
+                    logger.warning('For episode: ', extra=logger_values)
 
                 # Periodically save gifs of episodes, model parameters, and summary statistics.
-                if episode_count % 5 == 0 and episode_count != 0:
-                    if episode_count % 250 == 0 and self.scope_name == 'worker_0':
-                        saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.ckpt')
-                        print("Saved Model")
+                if episode_count != 0:
+                    saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.ckpt')
+                    print("Saved Model")
 
-                    # mean_reward = np.mean(episode_rewards[-5:])
-                    # mean_length = np.mean(self.episode_lengths[-5:])
-                    # mean_value = np.mean(self.episode_mean_values[-5:])
-                    # summary = tf.Summary()
-                    # summary.value.add(tag='Perf/Reward', simple_value=float(mean_reward))
-                    # summary.value.add(tag='Perf/Length', simple_value=float(mean_length))
-                    # summary.value.add(tag='Perf/Value', simple_value=float(mean_value))
-                    # summary.value.add(tag='Losses/Value Loss', simple_value=float(value_loss))
-                    # summary.value.add(tag='Losses/Policy Loss', simple_value=float(policy_loss))
-                    # summary.value.add(tag='Losses/Entropy', simple_value=float(entropy_loss))
-                    # summary.value.add(tag='Losses/Grad Norm', simple_value=float(gradients))
-                    # summary.value.add(tag='Losses/Var Norm', simple_value=float(variance))
-                    # self.summary_writer.add_summary(summary, episode_count)
-
-                    # self.summary_writer.flush()
-                # if self.name == 'worker_0':
-                #     sess.run(self.increment)
                 episode_count += 1
 
-    def update_params(self, episode_buffer, sess, gamma, value):
-        episode_buffer = np.array(episode_buffer)
-        observations = episode_buffer[:, 0]
-        actions = episode_buffer[:, 1]
-        rewards = episode_buffer[:, 2]
-        values = episode_buffer[:, 5]
+    def update_params(self, episode_buffer, sess, gamma):
+        total_reward = 0
+        total_generalized_advantage = 0
+        for i, episode in enumerate(episode_buffer[:-1]):
+            state, action, reward, value = episode[0], episode[1], episode[2], episode[5]
+            total_reward += reward * (gamma ** i)
+            delta_t = reward + gamma * episode_buffer[i + 1][5] - value
+            total_generalized_advantage = total_generalized_advantage * gamma + delta_t
 
-        discount = lambda x, y: [a * (y ** i) for i, a in enumerate(x)]
-
-        # Here we take the rewards and values from the rollout, and use them to
-        # generate the advantage and discounted returns.
-        # The advantage function uses "Generalized Advantage Estimation"
-        self.rewards_plus = np.asarray(rewards.tolist() + [value])
-        discounted_rewards = discount(self.rewards_plus, gamma)[:-1]
-
-        self.value_plus = np.asarray(values.tolist() + [value])
-        advantages = rewards + gamma * self.value_plus[1:] - self.value_plus[:-1]
-        advantages = discount(advantages, gamma)
-
-        feed_dict = {self.target_v: discounted_rewards,
-                     self.inputs: np.vstack(observations).T,
-                     self.actions: actions,
-                     self.advantages: advantages,
-                     }
-
-        value_loss, policy_loss, entropy_loss, gradients, variance, \
-        self.batch_rnn_state, _ = sess.run([self.value_loss,
-                                            self.policy_loss,
-                                            self.entropy,
-                                            self.grad_norms,
-                                            self.var_norms,
-                                            self.apply_grads],
-                                           feed_dict=feed_dict)
-
+            value_loss, policy_loss, entropy_loss, gradients, variance = sess.run([
+                self.value_loss, self.policy_loss, self.loss, self.gradients, self.var_norms], feed_dict={
+                self.inputs: state.T,
+                self.dropout_prob: 0.2,
+                self.actions: action,
+                self.target_v: total_reward,
+                self.generalized_advantage: total_generalized_advantage
+            })
         return value_loss, policy_loss, entropy_loss, gradients, variance
 
 
 if __name__ == '__main__':
-    num_workers = mp.cpu_count() - 2  # To not crash
     path_to_be_stored = ""
-    max_episodes = 0
+    max_episodes = 2
     gamma = 0.3
     workers = []
     master_network = ActorCriticNetwork()
     with tf.Session() as sess:
         saver = tf.train.Saver()
-        for i in range(num_workers):
-            workers.append(
-                Worker(0, scope_name=f"worker_{i}", state_size=17, saver=saver, model_path=path_to_be_stored)
-            )
-
-        coord = tf.train.Coordinator()
-        workers[0].work(max_episodes, gamma, coord, saver)
-        worker_threads = []
-        # for worker in workers:
-        #     t = threading.Thread(target=worker.work, args=(max_episodes, gamma, sess, coord, saver))
-        #     t.start()
-        #     worker_threads.append(t)
-        coord.join(worker_threads)
+        worker = Worker(0, scope_name=f"worker_0", state_size=17, saver=saver,
+                        sess=master_network.sess, model_path=path_to_be_stored)
+        worker.work(max_episodes, gamma=gamma, saver=saver)
