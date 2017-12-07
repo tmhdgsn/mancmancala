@@ -5,10 +5,6 @@ import tensorflow as tf
 from decision_engines.a3c_research import game_env as env
 from decision_engines.a3c_research.a3c_model import ActorCriticNetwork
 
-LOGGING_FORMAT = '%(episode_count)  %(policy_loss)  %(value_loss)'
-logging.basicConfig(format=LOGGING_FORMAT)
-logger = logging.getLogger('loss')
-
 
 # Copies one set of variables to another.
 # Used to set worker network parameters to those of global network.
@@ -121,11 +117,10 @@ class Worker(ActorCriticNetwork):
                 if len(episode_buffer) != 0:
                     value_loss, policy_loss, entropy_loss, gradients, variance = self.update_params(episode_buffer,
                                                                                                     sess, gamma)
-                    logger_values = {
-                        'episode_count': episode_count,
-                        'value_loss': value_loss, 'policy_loss': policy_loss
-                    }
-                    logger.warning('For episode: ', extra=logger_values)
+                    logging.warning(
+                        'For episode count: %s we have value loss: %s '
+                        'and policy loss: %s' % (episode_count, value_loss, policy_loss)
+                    )
 
                 # Periodically save gifs of episodes, model parameters, and summary statistics.
                 if episode_count != 0:
