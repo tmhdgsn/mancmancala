@@ -32,12 +32,12 @@ class Worker(ActorCriticNetwork):
         self.update_local_ops = update_target_graph('global', self.scope_name)
 
         self.actions = tf.placeholder(dtype=tf.int32)
-        self.target_v = tf.placeholder(dtype=tf.float32)
-        # self.advantages = tf.placeholder(dtype=tf.float32)
+        self.total_reward = tf.placeholder(dtype=tf.float32)
         self.generalized_advantage = tf.placeholder(dtype=tf.float32)
+        self.advantage = self.total_reward - tf.reshape(self.critic_output, [-1])
 
         # Loss functions
-        self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.target_v - tf.reshape(self.critic_output, [-1])))
+        self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.advantage))
         self.entropy = - tf.reduce_sum(self.actor_output * tf.log(self.actor_output))
         self.policy_loss = -tf.reduce_sum(tf.log(self.actor_output) * self.generalized_advantage)
         self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.01
@@ -57,12 +57,10 @@ class Worker(ActorCriticNetwork):
         sess = self.sess
         with sess.as_default(), sess.graph.as_default():
             episode_count = 0
-            episode_rewards = []
             for i in range(max_episode_length):
                 # copy the local params from the global network
                 sess.run(self.update_local_ops)
                 episode_buffer = []
-                episode_values = []
                 episode_frames = []
                 episode_reward = 0
                 episode_step_count = 0
@@ -70,15 +68,13 @@ class Worker(ActorCriticNetwork):
 
                 init_game_state = env.reset()
                 episode_frames.append(init_game_state)
-                rnn_state = self.state
                 while not game_over:
                     # get an action distribution and estimate value from policy
                     action_distribution, estimated_value, rnn_state = sess.run(
                         [self.actor_output, self.critic_output, self.state],
                         feed_dict={
-                            self.inputs: init_game_state.T,
+                            self.inputs: init_game_state,
                             self.dropout_prob: 0.2,
-                            # self.state: rnn_state,
                         })
 
                     # select action
@@ -107,7 +103,7 @@ class Worker(ActorCriticNetwork):
                     # If the episode hasn't ended, but the experience buffer is full, then we
                     # make an update step using that experience rollout.
                     if len(episode_buffer) == 30 and not game_over and episode_step_count != max_episode_length - 1:
-                        value_loss, policy_loss, entropy_loss, gradients, variance = self.update_params(
+                        self.update_params(
                             episode_buffer, sess, gamma
                         )
                         episode_buffer = []
@@ -132,25 +128,28 @@ class Worker(ActorCriticNetwork):
     def update_params(self, episode_buffer, sess, gamma):
         total_reward = 0
         total_generalized_advantage = 0
-        for i, episode in enumerate(episode_buffer[:-1]):
+        for i, episode in enumerate(reversed(episode_buffer[:-1])):
             state, action, reward, value = episode[0], episode[1], episode[2], episode[5]
-            total_reward += reward * (gamma ** i)
-            delta_t = reward + gamma * episode_buffer[i + 1][5] - value
+            next_value = episode_buffer[i + 1][5]
+            total_reward = total_reward * gamma + reward
+            advantage = total_reward - value
+            delta_t = reward + gamma * next_value - value
             total_generalized_advantage = total_generalized_advantage * gamma + delta_t
 
             value_loss, policy_loss, entropy_loss, gradients, variance = sess.run([
                 self.value_loss, self.policy_loss, self.loss, self.gradients, self.var_norms], feed_dict={
-                self.inputs: state.T,
+                self.inputs: state,
                 self.dropout_prob: 0.2,
                 self.actions: action,
-                self.target_v: total_reward,
+                self.advantage: advantage,
+                self.total_reward: total_reward,
                 self.generalized_advantage: total_generalized_advantage
             })
         return value_loss, policy_loss, entropy_loss, gradients, variance
 
 
 if __name__ == '__main__':
-    path_to_be_stored = ""
+    path_to_be_stored = "."
     max_episodes = 2
     gamma = 0.3
     workers = []

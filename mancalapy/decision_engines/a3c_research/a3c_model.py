@@ -37,15 +37,15 @@ class ActorCriticNetwork:
 
     def initialize_scope(self, graph):
         # Probability for dropout
-        self.inputs = tf.placeholder(tf.float32, [self.state_size, 1],
-                                     name='inputs')  # Dimensions of this will be 17 X 1 for each of the states
+        self.inputs = tf.placeholder(tf.float32, [None, self.state_size],
+                                     name='inputs')  # Dimensions of this will be 1 X 17 for each of the states
         self.dropout_prob = tf.placeholder(tf.float32, name='keep_prob')
 
         # Let the activation function be RELu, we can play with it later on
         # Automatically creates weights with the help of the Xavier Initializer
         # https://www.tensorflow.org/api_docs/python/tf/contrib/layers/fully_connected
         encoded_inputs = tf.contrib.layers.fully_connected(self.inputs, self.num_outputs)
-        rnn_inputs = tf.reshape(encoded_inputs, (1, self.state_size, self.num_outputs))
+        rnn_inputs = tf.expand_dims(encoded_inputs, [1])
         # Forming an LSTM Layer
         lstm = tf.contrib.rnn.BasicLSTMCell(self.lstm_size)
         drop = tf.contrib.rnn.DropoutWrapper(lstm, output_keep_prob=self.dropout_prob)
@@ -58,19 +58,18 @@ class ActorCriticNetwork:
         )
 
         # calculate the value of move
-        final_output = tf.expand_dims(outputs[0, 16, :], [0])
         self.critic_output = tf.contrib.layers.fully_connected(
-            final_output, 1, activation_fn=None
+            outputs, 1, activation_fn=None
         )
 
         # calculate the distribution of actions
         self.actor_output = tf.contrib.layers.fully_connected(
-            final_output, self.num_of_actions, activation_fn=tf.nn.softmax
+            outputs, self.num_of_actions, activation_fn=tf.nn.softmax
         )
 
     def __call__(self, game_board, *args, **kwargs) -> np.array:
         feed = {
-            self.inputs: game_board.T,
+            self.inputs: game_board,
             self.dropout_prob: kwargs.get("dropout_prob", 0.2),
         }
         critic_output, actor_output = self.sess.run([self.critic_output, self.actor_output], feed_dict=feed)
