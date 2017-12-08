@@ -150,7 +150,7 @@ class Worker(ActorCriticNetwork):
 
 
 if __name__ == '__main__':
-    path_to_be_stored = "."
+    path_to_be_stored = ""
     max_episodes = 2
     gamma = 0.3
     workers = []
