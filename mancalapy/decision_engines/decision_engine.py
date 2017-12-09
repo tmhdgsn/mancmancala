@@ -29,7 +29,7 @@ class DecisionEngine:
         # H4: #of stones close to my home (1/3)
         # H5: #of stones away from my home (1/3)
         # H6: #of stone in the middle (1/3)
-        return board[self.agent.side.value][self.MANKALAH] - board[self.agent.side.opposite().value][self.MANKALAH]
+        return sum(board[self.agent.side.value]) - sum(board[self.agent.side.opposite().value])
 
     @classmethod
     def game_over(cls, board):

@@ -6,8 +6,6 @@ import org.mockito.Mock;
 import org.mockito.Mockito;
 import org.mockito.MockitoAnnotations;
 
-import java.io.ByteArrayInputStream;
-import java.io.IOException;
 import java.io.InputStream;
 
 
@@ -31,7 +29,7 @@ public class AgentTest {
     public void testCanRunAgent() {
         this.agent.play();
         InputStream from_input = new java.io.ByteArrayInputStream("START;SOUTH".getBytes());
-        System.setIn(in);
+        System.setIn(from_input);
         Mockito.when(mockEngine.getMove()).thenReturn(1);
         System.out.println(this.agent.board);
     }
