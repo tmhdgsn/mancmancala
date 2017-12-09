@@ -36,7 +36,8 @@ class ActorCriticNetwork:
                 self.sess.run(self.init_graph)
 
     def initialize_scope(self, graph):
-        # Probability for dropout
+        self.value_loss = 0
+        self.policy_loss = 0
         self.inputs = tf.placeholder(tf.float32, [None, self.state_size],
                                      name='inputs')  # Dimensions of this will be 1 X 17 for each of the states
         self.dropout_prob = tf.placeholder(tf.float32, name='keep_prob')

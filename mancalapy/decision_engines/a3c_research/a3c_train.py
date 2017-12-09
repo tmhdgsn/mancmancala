@@ -37,9 +37,9 @@ class Worker(ActorCriticNetwork):
         self.advantage = self.total_reward - tf.reshape(self.critic_output, [-1])
 
         # Loss functions
-        self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.advantage))
-        self.entropy = - tf.reduce_sum(self.actor_output * tf.log(self.actor_output))
-        self.policy_loss = -tf.reduce_sum(tf.log(self.actor_output) * self.generalized_advantage)
+        self.value_loss += 0.5 * tf.reduce_sum(tf.square(self.advantage))
+        self.entropy = -tf.reduce_sum(self.actor_output * tf.log(self.actor_output))
+        self.policy_loss -= tf.reduce_sum(tf.log(self.actor_output) * self.generalized_advantage)
         self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.01
 
         # Get gradients from local network using local losses
