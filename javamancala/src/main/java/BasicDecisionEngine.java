@@ -4,7 +4,6 @@ public class BasicDecisionEngine extends DecisionEngine {
     }
 
 
-
     @Override
     public int getMove() {
         int[] board_side = this.agent.board.board[this.agent.side.value];

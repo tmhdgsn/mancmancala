@@ -54,7 +54,7 @@ public abstract class DecisionEngine {
         return my_score - opponent_score;
     }
 
-    private boolean playHole(int move, MancalaBoard boardCopy, Side agentSide) {
+    boolean playHole(int move, MancalaBoard boardCopy, Side agentSide) {
         int seeds = boardCopy.board[agentSide.value][move];
         boardCopy.board[agentSide.value][move] = 0;
         int cur_hole = (move + 1);
@@ -72,7 +72,7 @@ public abstract class DecisionEngine {
             seeds -= 1;
         }
 
-        int opposite_hole = MANCALA - 1 - move;
+        int opposite_hole = (MANCALA - 1 - move);
         // check if we can capture opponent pieces
         if ((cur_hole != MANCALA)
                 && (currentSide == agentSide)
@@ -80,7 +80,7 @@ public abstract class DecisionEngine {
                 && (boardCopy.board[currentSide.opposite().value][opposite_hole] > 0))) {
             int captured_seeds = boardCopy.board[currentSide.opposite().value][opposite_hole];
             boardCopy.board[currentSide.opposite().value][opposite_hole] = 0;
-            boardCopy.board[currentSide.value][MANCALA] += captured_seeds;
+            boardCopy.board[currentSide.value][MANCALA] += captured_seeds + 1;
             return false;
         }
 

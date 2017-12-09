@@ -14,8 +14,8 @@ public class MancalaBoard implements Board {
             this.board[1][i] = this.seeds;
         }
         // empty mancalas
-        this.board[0][this.holes + 1] = 0;
-        this.board[1][this.holes + 1] = 0;
+        this.board[0][this.holes] = 0;
+        this.board[1][this.holes] = 0;
     }
 
     public MancalaBoard(MancalaBoard mancalaBoard) {

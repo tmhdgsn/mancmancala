@@ -7,9 +7,16 @@ public class Agent {
     public Side side;
     private boolean hasMoved;
 
-    public Agent(DecisionEngine decisionEngine, int holes, int seeds) {
+    public Agent(String decisionEngine, int holes, int seeds) {
+        DecisionEngineFactory factory = new DecisionEngineFactory(this);
         this.board = new MancalaBoard(holes, seeds);
-        this.engine = decisionEngine;
+
+        if (factory.engines.containsKey(decisionEngine)){
+            this.engine = factory.engines.get(decisionEngine);
+        } else {
+            this.engine = factory.engines.get("basic");
+        }
+
         this.side = Side.NORTH;
         this.hasMoved = false;
     }
