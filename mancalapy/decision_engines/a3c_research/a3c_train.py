@@ -68,53 +68,54 @@ class Worker(ActorCriticNetwork):
 
                 init_game_state = env.reset()
                 episode_frames.append(init_game_state)
-                while not game_over:
-                    # get an action distribution and estimate value from policy
-                    action_distribution, estimated_value, rnn_state = sess.run(
-                        [self.actor_output, self.critic_output, self.state],
-                        feed_dict={
-                            self.inputs: init_game_state,
-                            self.dropout_prob: 0.2,
-                        })
+                for i in range(30):
+                    while not game_over:
+                        # get an action distribution and estimate value from policy
+                        action_distribution, estimated_value, rnn_state = sess.run([
+                            self.actor_output, self.critic_output, self.state],
+                            feed_dict={
+                                self.inputs: init_game_state,
+                                self.dropout_prob: 0.2,
+                            }
+                        )
 
-                    # select action
-                    action = int(np.argmax(action_distribution))
+                        # select action
+                        action = int(np.argmax(action_distribution))
 
-                    # play action on game
-                    next_game_state, reward, game_over = env.step(init_game_state, action)
+                        # play action on game
+                        next_game_state, reward, game_over = env.step(init_game_state, action)
 
-                    # save game transition and estimated value
-                    episode_buffer.append(
-                        [
-                            init_game_state,
-                            action,
-                            reward,
-                            next_game_state,
-                            game_over,
-                            estimated_value
-                        ])
+                        # save game transition and estimated value
+                        episode_buffer.append(
+                            [
+                                init_game_state,
+                                action,
+                                reward,
+                                next_game_state,
+                                game_over,
+                                estimated_value
+                            ]
+                        )
 
-                    # add reward for episode + update state
-                    episode_reward += reward
-                    init_game_state = next_game_state
-                    total_steps += 1
-                    episode_step_count += 1
+                        # add reward for episode + update state
+                        episode_reward += reward
+                        init_game_state = next_game_state
+                        total_steps += 1
+                        episode_step_count += 1
 
                     # If the episode hasn't ended, but the experience buffer is full, then we
                     # make an update step using that experience rollout.
-                    if len(episode_buffer) == 30 and not game_over and episode_step_count != max_episode_length - 1:
-                        self.update_params(
-                            episode_buffer, sess, gamma
-                        )
-                        episode_buffer = []
-                        sess.run(self.update_local_ops)
+                if len(episode_buffer) == 30 and not game_over and episode_step_count != max_episode_length - 1:
+                    self.update_params(episode_buffer, sess, gamma)
+                    episode_buffer = []
+                    sess.run(self.update_local_ops)
 
                 # Update the network using the episode buffer at the end of the episode.
                 if len(episode_buffer) != 0:
                     value_loss, policy_loss, entropy_loss, gradients, variance = self.update_params(episode_buffer,
                                                                                                     sess, gamma)
                     logging.warning(
-                        'For episode 1: %s we have value loss: %s '
+                        'For episode %s: we have value loss: %s '
                         'and policy loss: %s' % (episode_count, value_loss, policy_loss)
                     )
 
