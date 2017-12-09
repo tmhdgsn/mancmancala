@@ -1,5 +1,3 @@
-package decision_engines;
-
 import org.junit.After;
 import org.junit.Before;
 
