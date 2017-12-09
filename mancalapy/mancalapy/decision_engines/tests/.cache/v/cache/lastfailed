@@ -1,0 +1,17 @@
+{
+  "test_decision_engine.py::test_play_hole_updates_mancala_correctly[initial_game3-2-Side.SOUTH-expected_game3]": true,
+  "test_minimax.py::test_ab_minimax_agent_makes_correct_decision[game0-Side.SOUTH-1]": true,
+  "test_minimax.py::test_ab_minimax_agent_makes_correct_decision[game0-Side.SOUTH-False-1]": true,
+  "test_minimax.py::test_ab_minimax_agent_makes_correct_decision[game1-Side.NORTH-7]": true,
+  "test_minimax.py::test_ab_minimax_agent_makes_correct_decision[game1-Side.NORTH-False-1]": true,
+  "test_minimax.py::test_ab_minimax_agent_makes_correct_decision[game2-Side.SOUTH-6]": true,
+  "test_minimax.py::test_minimax_agent_makes_correct_decision[game0-Side.SOUTH-0]": true,
+  "test_minimax.py::test_minimax_agent_makes_correct_decision[game0-Side.SOUTH-2]": true,
+  "test_minimax.py::test_minimax_agent_makes_correct_decision[game0-Side.SOUTH-False-1]": true,
+  "test_minimax.py::test_minimax_agent_makes_correct_decision[game1-Side.NORTH-0]": true,
+  "test_minimax.py::test_minimax_agent_makes_correct_decision[game1-Side.NORTH-7]": true,
+  "test_minimax.py::test_minimax_agent_makes_correct_decision[game1-Side.NORTH-False-1]": true,
+  "test_monte_carlo.py::test_monte_carlo_agent_makes_correct_decision[game0-Side.SOUTH-1]": true,
+  "test_monte_carlo.py::test_monte_carlo_agent_makes_correct_decision[game1-Side.NORTH-7]": true,
+  "test_monte_carlo.py::test_monte_carlo_agent_makes_correct_decision[game2-Side.SOUTH-6]": true
+}
