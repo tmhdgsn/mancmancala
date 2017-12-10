@@ -70,48 +70,50 @@ class Worker(ActorCriticNetwork):
                 episode_frames.append(init_game_state)
                 lstm_c_state, lstm_h_state = self.c_init, self.h_init
                 for i in range(30):
-                    while not game_over:
-                        # get an action distribution and estimate value from policy
-                        action_distribution, estimated_value, lstm_c_state, lstm_h_state = sess.run([
-                            self.actor_output, self.critic_output, self.c_state, self.h_state],
-                            feed_dict={
-                                self.inputs: init_game_state,
-                                self.dropout_prob: 0.2,
-                                self.c_state: lstm_c_state,
-                                self.h_state: lstm_h_state
-                            }
-                        )
+                    # get an action distribution and estimate value from policy
+                    action_distribution, estimated_value, lstm_c_state, lstm_h_state = sess.run([
+                        self.actor_output, self.critic_output, self.c_state_out, self.h_state_out
+                    ],
+                        feed_dict={
+                            self.inputs: init_game_state,
+                            self.dropout_prob: 0.2,
+                            self.c_state_in: lstm_c_state,
+                            self.h_state_in: lstm_h_state
+                        }
+                    )
 
-                        # select action
-                        action = int(np.argmax(action_distribution))
+                    action_distribution = np.squeeze(action_distribution)
+                    # select action
+                    if init_game_state[0][-1] == 0:
+                        legal_moves = np.nonzero(init_game_state[0][:7])
+                    else:
+                        legal_moves = np.nonzero(init_game_state[0][8:-2])
 
-                        # play action on game
-                        next_game_state, reward, game_over = env.step(init_game_state, action)
+                    action = max(legal_moves[0], key=lambda x: action_distribution[x])
 
-                        # save game transition and estimated value
-                        episode_buffer.append(
-                            [
-                                init_game_state,
-                                action,
-                                reward,
-                                next_game_state,
-                                game_over,
-                                estimated_value
-                            ]
-                        )
+                    # play action on game
+                    next_game_state, reward, game_over = env.step(init_game_state, action)
 
-                        # add reward for episode + update state
-                        episode_reward += reward
-                        init_game_state = next_game_state
-                        total_steps += 1
-                        episode_step_count += 1
+                    # save game transition and estimated value
+                    episode_buffer.append(
+                        [
+                            init_game_state,
+                            action,
+                            reward,
+                            next_game_state,
+                            game_over,
+                            estimated_value,
+                        ]
+                    )
 
-                    # If the episode hasn't ended, but the experience buffer is full, then we
-                    # make an update step using that experience rollout.
-                if len(episode_buffer) == 30 and not game_over and episode_step_count != max_episode_length - 1:
-                    self.update_params(episode_buffer, sess, gamma)
-                    episode_buffer = []
-                    sess.run(self.update_local_ops)
+                    # add reward for episode + update state
+                    episode_reward += reward
+                    init_game_state = next_game_state
+                    total_steps += 1
+                    episode_step_count += 1
+
+                    if game_over:
+                        break
 
                 # Update the network using the episode buffer at the end of the episode.
                 if len(episode_buffer) != 0:
@@ -133,7 +135,7 @@ class Worker(ActorCriticNetwork):
         total_reward = 0
         total_generalized_advantage = 0
         for i, episode in enumerate(reversed(episode_buffer[:-1])):
-            state, action, reward, value = episode[0], episode[1], episode[2], episode[5]
+            state, action, reward, value, = episode[0], episode[1], episode[2], episode[5]
             next_value = episode_buffer[i + 1][5]
             total_reward = total_reward * gamma + reward
             advantage = total_reward - value
@@ -145,6 +147,8 @@ class Worker(ActorCriticNetwork):
                 self.inputs: state,
                 self.dropout_prob: 0.2,
                 self.actions: action,
+                self.c_state_in: self.c_init,
+                self.h_state_in: self.h_init,
                 self.advantage: advantage,
                 self.total_reward: total_reward,
                 self.generalized_advantage: total_generalized_advantage
@@ -154,7 +158,7 @@ class Worker(ActorCriticNetwork):
 
 if __name__ == '__main__':
     path_to_be_stored = "."
-    max_episodes = 2
+    max_episodes = 4
     gamma = 0.3
     workers = []
     master_network = ActorCriticNetwork()
