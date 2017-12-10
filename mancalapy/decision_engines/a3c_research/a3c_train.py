@@ -6,154 +6,146 @@ from decision_engines.a3c_research import game_env as env
 from decision_engines.a3c_research.a3c_model import ActorCriticNetwork
 
 
-# Copies one set of variables to another.
-# Used to set worker network parameters to those of global network.
-def update_target_graph(from_scope, to_scope):
-    from_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, from_scope)
-    to_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, to_scope)
-
-    op_holder = []
-    for from_var, to_var in zip(from_vars, to_vars):
-        op_holder.append(to_var.assign(from_var))
-    return op_holder
-
-
-class Worker(ActorCriticNetwork):
+class TrainingNetwork(ActorCriticNetwork):
     def __init__(self, *args, **kwargs):
         self.model_path = kwargs.get("model_path")
         self.lr = kwargs.get("lr", 0.001)
         self.trainer = kwargs.get("trainer", tf.train.AdamOptimizer(learning_rate=self.lr))
         super().__init__(*args, **kwargs)
-        self.sess = kwargs.get("sess")
 
-    def initialize_scope(self, graph):
-        super().initialize_scope(graph)
-        # sync with global model
-        self.update_local_ops = update_target_graph('global', self.scope_name)
+    def initialize_scope(self):
+        super().initialize_scope()
+        self.actions = tf.placeholder(shape=[None], dtype=tf.int32)
+        self.one_hot_encoded_actions = tf.one_hot(self.actions, 7, dtype=tf.float32)
+        self.target_value = tf.placeholder(shape=[None], dtype=tf.float32)
+        self.advantages = tf.placeholder(shape=[None], dtype=tf.float32)
+        self.actor_output = tf.squeeze(self.actor_output, axis=[0])
 
-        self.actions = tf.placeholder(dtype=tf.int32)
-        self.total_reward = tf.placeholder(dtype=tf.float32)
-        self.generalized_advantage = tf.placeholder(dtype=tf.float32)
-        self.advantage = self.total_reward - tf.reshape(self.critic_output, [-1])
+        self.action_played = tf.reduce_sum(self.one_hot_encoded_actions * self.actor_output[1])
 
         # Loss functions
-        self.value_loss += 0.5 * tf.reduce_sum(tf.square(self.advantage))
-        self.entropy = -tf.reduce_sum(self.actor_output * tf.log(self.actor_output))
-        self.policy_loss -= tf.reduce_sum(tf.log(self.actor_output) * self.generalized_advantage)
+        self.value_loss = 0.5 * tf.reduce_sum(tf.square(self.target_value - tf.reshape(self.critic_output, [-1])))
+        self.entropy = - tf.reduce_sum(self.actor_output * tf.log(self.actor_output))
+        self.policy_loss = -tf.reduce_sum(tf.log(self.action_played) * self.advantages)
         self.loss = 0.5 * self.value_loss + self.policy_loss - self.entropy * 0.01
 
-        # Get gradients from local network using local losses
-        local_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, self.scope_name)
-        self.gradients = tf.gradients(self.loss, local_vars)
-        self.var_norms = tf.global_norm(local_vars)
-        grads, self.grad_norms = tf.clip_by_global_norm(self.gradients, 40.0)
-
-        # Apply local gradients to global network
-        global_vars = tf.get_collection(tf.GraphKeys.TRAINABLE_VARIABLES, 'global')
-        self.apply_grads = self.trainer.apply_gradients(zip(grads, global_vars))
+        # update gradients
+        self.trainer.minimize(self.loss)
 
     def work(self, max_episode_length, gamma, saver):
-        total_steps = 0
-        sess = self.sess
-        with sess.as_default(), sess.graph.as_default():
-            episode_count = 0
-            for i in range(max_episode_length):
-                # copy the local params from the global network
-                sess.run(self.update_local_ops)
-                episode_buffer = []
-                episode_frames = []
-                episode_reward = 0
-                episode_step_count = 0
-                game_over = False
+        episode_count = 0
+        for i in range(max_episode_length):
+            episode_buffer = []
+            episode_frames = []
+            episode_reward = 0
+            episode_step_count = 0
 
-                init_game_state = env.reset()
-                episode_frames.append(init_game_state)
-                lstm_c_state, lstm_h_state = self.c_init, self.h_init
-                for i in range(30):
-                    # get an action distribution and estimate value from policy
-                    action_distribution, estimated_value, lstm_c_state, lstm_h_state = sess.run([
-                        self.actor_output, self.critic_output, self.c_state_out, self.h_state_out
-                    ],
-                        feed_dict={
-                            self.inputs: init_game_state,
-                            self.dropout_prob: 0.2,
-                            self.c_state_in: lstm_c_state,
-                            self.h_state_in: lstm_h_state
-                        }
-                    )
+            init_game_state = env.reset()
+            episode_frames.append(init_game_state)
+            lstm_c_state, lstm_h_state = self.input_c, self.input_h
+            for stage in range(3000):
+                # save the history of the game when the decision was made
+                s_lstm_h_state, s_lstm_c_state = lstm_h_state, lstm_c_state
 
-                    action_distribution = np.squeeze(action_distribution)
-                    # select action
-                    if init_game_state[0][-1] == 0:
-                        legal_moves = np.nonzero(init_game_state[0][:7])
-                    else:
-                        legal_moves = np.nonzero(init_game_state[0][8:-2])
+                # get an action distribution and estimate value from policy
+                estimated_value, action_distribution, lstm_c_state, lstm_h_state = self.sess.run(
+                    [self.critic_output, self.actor_output, self.c_state_out, self.h_state_out],
+                    feed_dict={
+                        self.inputs: init_game_state,
+                        self.c_state_in: lstm_c_state,
+                        self.h_state_in: lstm_h_state
+                    })
 
-                    action = max(legal_moves[0], key=lambda x: action_distribution[x])
+                action_distribution = np.squeeze(action_distribution)
 
-                    # play action on game
-                    next_game_state, reward, game_over = env.step(init_game_state, action)
+                # select action
+                if init_game_state[0][-1] == 0:
+                    legal_moves = np.nonzero(init_game_state[0][:7])
+                else:
+                    legal_moves = np.nonzero(init_game_state[0][8:15])
+                legal_set = set(legal_moves[0])
+                action_distribution = [prob if i in legal_set else 0 for i, prob in enumerate(action_distribution)]
+                action_distribution /= sum(action_distribution)
+                action = int(np.random.choice(np.arange(7), p=action_distribution))
 
-                    # save game transition and estimated value
-                    episode_buffer.append(
-                        [
-                            init_game_state,
-                            action,
-                            reward,
-                            next_game_state,
-                            game_over,
-                            estimated_value,
-                        ]
-                    )
+                # play action on game
+                next_game_state, reward, game_over = env.step(init_game_state, action)
 
-                    # add reward for episode + update state
-                    episode_reward += reward
-                    init_game_state = next_game_state
-                    total_steps += 1
-                    episode_step_count += 1
+                # save game transition and estimated value
+                episode_buffer.append(
+                    [
+                        init_game_state,
+                        action,
+                        reward,
+                        next_game_state,
+                        game_over,
+                        estimated_value,
+                        s_lstm_c_state,
+                        s_lstm_h_state
+                    ]
+                )
 
-                    if game_over:
-                        break
+                # add reward for episode + update state
+                episode_reward += reward
+                init_game_state = next_game_state
+                episode_step_count += 1
 
-                # Update the network using the episode buffer at the end of the episode.
-                if len(episode_buffer) != 0:
-                    value_loss, policy_loss, entropy_loss, gradients, variance = self.update_params(episode_buffer,
-                                                                                                    sess, gamma)
-                    logging.warning(
-                        'For episode %s: we have value loss: %s '
-                        'and policy loss: %s' % (episode_count, value_loss, policy_loss)
-                    )
+                if game_over:
+                    break
 
-                # Periodically save gifs of episodes, model parameters, and summary statistics.
-                if episode_count != 0:
-                    saver.save(sess, self.model_path + '/model-' + str(episode_count) + '.ckpt')
-                    print("Saved Model")
+            # Update the network using the episode buffer at the end of the episode.
+            if len(episode_buffer) != 0:  #
+                value_loss, policy_loss, _ = self.update_params(episode_buffer, self.sess, gamma)
+                logging.warning(
+                    'For episode %s: we have value loss: %s '
+                    'and policy loss: %s' % (episode_count, value_loss, policy_loss)
+                )
+                # pass
 
-                episode_count += 1
+            # Periodically save gifs of episodes, model parameters, and summary statistics.
+            if episode_count != 0:
+                saver.save(self.sess, self.model_path + '/model-' + str(episode_count) + '.ckpt')
+                print("Saved Model")
+                # pass
+
+            episode_count += 1
+
+    @staticmethod
+    def discount(ret, gamma):
+        dis_ret = []
+        # long term returns are worth more than short term
+        for i, r in enumerate(reversed(ret)):
+            dis_ret.append(r * (gamma ** i))
+
+        # put the discounted returns back in chronological order
+        return np.array([i for i in reversed(dis_ret)])
 
     def update_params(self, episode_buffer, sess, gamma):
-        total_reward = 0
-        total_generalized_advantage = 0
-        for i, episode in enumerate(reversed(episode_buffer[:-1])):
-            state, action, reward, value, = episode[0], episode[1], episode[2], episode[5]
-            next_value = episode_buffer[i + 1][5]
-            total_reward = total_reward * gamma + reward
-            advantage = total_reward - value
-            delta_t = reward + gamma * next_value - value
-            total_generalized_advantage = total_generalized_advantage * gamma + delta_t
+        episode_buffer = np.array(episode_buffer)
+        game_states = episode_buffer[:, 0]
+        actions = episode_buffer[:, 1]
+        rewards = episode_buffer[:, 2]
+        values = episode_buffer[:, 5]
+        c_states = episode_buffer[0, 6]
+        h_states = episode_buffer[0, 7]
+        values = np.append(values, values[-1])
 
-            value_loss, policy_loss, entropy_loss, gradients, variance = sess.run([
-                self.value_loss, self.policy_loss, self.loss, self.gradients, self.var_norms], feed_dict={
-                self.inputs: state,
-                self.dropout_prob: 0.2,
-                self.actions: action,
-                self.c_state_in: self.c_init,
-                self.h_state_in: self.h_init,
-                self.advantage: advantage,
-                self.total_reward: total_reward,
-                self.generalized_advantage: total_generalized_advantage
-            })
-        return value_loss, policy_loss, entropy_loss, gradients, variance
+        # Here we take the rewards and values from the episode_buffer, and use them to
+        # generate the advantage and discounted returns.
+        # The advantage function uses "Generalized Advantage Estimation"
+        discounted_rewards = self.discount(rewards, gamma)
+        advantages = rewards + gamma * values[1:] - values[:-1]
+        advantages = np.squeeze(self.discount(advantages, gamma))
+
+        value_loss, policy_loss, total_loss = sess.run([self.value_loss, self.policy_loss, self.loss], feed_dict={
+            self.inputs: np.vstack(game_states),
+            self.target_value: discounted_rewards,
+            self.actions: actions,
+            self.c_state_in: c_states,
+            self.h_state_in: h_states,
+            self.advantages: advantages
+        })
+        return value_loss, policy_loss, total_loss
 
 
 if __name__ == '__main__':
@@ -161,9 +153,7 @@ if __name__ == '__main__':
     max_episodes = 4
     gamma = 0.3
     workers = []
-    master_network = ActorCriticNetwork()
-    with tf.Session() as sess:
+    master_network = TrainingNetwork(model_path=path_to_be_stored, state_size=17)
+    with master_network.sess:
         saver = tf.train.Saver()
-        worker = Worker(0, scope_name=f"worker_0", state_size=17, saver=saver,
-                        sess=master_network.sess, model_path=path_to_be_stored)
-        worker.work(max_episodes, gamma=gamma, saver=saver)
+        master_network.work(max_episodes, gamma, saver)

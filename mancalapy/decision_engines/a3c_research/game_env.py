@@ -34,7 +34,7 @@ def step(init_game_state, action):
     :return:
     """
 
-    init_game_state = init_game_state[0]
+    init_game_state = np.squeeze(init_game_state)
     # last index is side
     side = Side(init_game_state[-1])
     board = np.reshape(deepcopy(init_game_state[:-1]), (2, 8))
