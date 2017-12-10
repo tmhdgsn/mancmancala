@@ -1,41 +1,26 @@
-//import jdk.internal.util.xml.impl.Input;
-//import org.junit.After;
-//import org.junit.Before;
-//import org.junit.Test;
-//import org.mockito.Mock;
-//import org.mockito.Mockito;
-//import org.mockito.MockitoAnnotations;
-//
-//import java.io.InputStream;
-//
-//
-//public class AgentTest {
-//
-//    private Agent agent;
-//    private InputStream mockInputStream;
-//    @Mock
-//    private DecisionEngine mockEngine;
-//
-//    @Before
-//    void setUp() throws Exception {
-//        MockitoAnnotations.initMocks(this);
-//        this.agent = new Agent(mockInputStream, mockEngine, 7, 7);
-//
-//
-//
-//    }
-//
-//    @Test
-//    public void testCanRunAgent() {
-//        this.agent.play();
-//        InputStream from_input = new java.io.ByteArrayInputStream("START;SOUTH".getBytes());
-//        System.setIn(from_input);
-//        Mockito.when(mockEngine.getMove()).thenReturn(1);
-//        System.out.println(this.agent.board);
-//    }
-//
-//    @After
-//    public void tearDown() throws Exception {
-//
-//    }
-//}
+import org.junit.Test;
+import java.util.Scanner;
+
+import static org.junit.Assert.assertTrue;
+
+
+public class AgentTest {
+
+    @Test
+    public void testCanRunAgent() {
+        Scanner sc = new Scanner("START;South\nEND");
+        Agent agent = new Agent("basic", 7, 7, sc);
+        agent.play();
+    }
+
+    @Test
+    public void testAgentSwapsSides() {
+        Scanner sc = new Scanner("START;South\n" +
+                "CHANGE;2;8,7,7,7,7,7,7,0,7,0,8,8,8,8,8,1;OPP\n" +
+                "CHANGE;SWAP;8,7,7,7,7,7,7,0,7,0,8,8,8,8,8,1;YOU\n" +
+                "END");
+        Agent agent = new Agent("basic", 7, 7, sc);
+        agent.play();
+        assertTrue(agent.side == Side.NORTH);
+    }
+}

@@ -1,4 +1,6 @@
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collections;
 
 public class MancalaBoard implements Board {
     public int [][] board;
@@ -66,6 +68,14 @@ public class MancalaBoard implements Board {
 
     }
 
-    public void updateBoard(int i) {
+    public void updateBoard(String raw_state) {
+        String[] pit_values = raw_state.split(",");
+        for (int i = 0; i <= this.holes; i++){
+            this.board[Side.NORTH.value][i] = Integer.parseInt(pit_values[i]);
+        }
+        Collections.reverse(Arrays.asList(pit_values));
+        for (int i = 0; i <= this.holes; i++) {
+            this.board[Side.SOUTH.value][(this.holes - i)] = Integer.parseInt(pit_values[i]);
+        }
     }
 }
