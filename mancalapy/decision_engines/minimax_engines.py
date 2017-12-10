@@ -1,3 +1,4 @@
+import datetime
 from copy import deepcopy
 
 from side import Side
@@ -15,10 +16,12 @@ class MiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "Minimax Engine"
 
-    def get_move(self, board=None, depth=None) -> int:
-        board = board if board is not None else self.agent.board
-        depth = depth if depth else self.depth
-        move, reward = self.max_min(board, max_depth=depth, agent_has_moved=self.agent.has_moved)
+    def get_move(self, board=None, start=7, thinking_time=8) -> int:
+        limit = datetime.datetime.now() + datetime.timedelta(seconds=thinking_time)
+        for depth in range(start, self.depth):
+            if datetime.datetime.now() >= limit:
+                break
+            move, reward = self.max_min(board, max_depth=depth, agent_has_moved=self.agent.has_moved)
         return move
 
     def min_max(self, board, max_depth=3, agent_has_moved=True) -> (int, float):
@@ -92,7 +95,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
 class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
     def __init__(self, agent):
         super().__init__(agent)
-        self.depth = 7
+        self.depth = 20
 
     def __repr__(self):
         return "AlphaBetaMinimax Engine"
@@ -100,10 +103,9 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
     def __str__(self):
         return "AlphaBetaMinimax Engine"
 
-    def get_move(self, board=None, depth=None) -> int:
+    def get_move(self, board=None, start=7, thinking_time=8) -> int:
         board = board if board is not None else self.agent.board
-        depth = depth if depth else self.depth
-        move, reward = self.max_min(board, alpha=-float('inf'), beta=float('inf'), max_depth=depth,
+        move, reward = self.max_min(board, alpha=-float('inf'), beta=float('inf'), max_depth=9,
                                     agent_has_moved=self.agent.has_moved)
         return move
 

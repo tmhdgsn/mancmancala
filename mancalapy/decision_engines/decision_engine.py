@@ -20,8 +20,7 @@ class DecisionEngine:
     def get_legal_moves(self, board, side) -> np.array:
         return board[side.value][:self.MANKALAH].nonzero()[0]
 
-    @classmethod
-    def intermediate_score(cls, board, side) -> float:
+    def intermediate_score(self, board, side) -> float:
         # paper on heuristics: https://fiasco.ittc.ku.edu/publications/documents/Gifford_ITTC-FY2009-TR-03050-03.pdf
         # H0: Chooses  first valid move(going left to right)
         # H1: (My Mancala – Opponent’s Mancala)
@@ -30,15 +29,14 @@ class DecisionEngine:
         # H4: #of stones close to my home (1/3)
         # H5: #of stones away from my home (1/3)
         # H6: #of stone in the middle (1/3)
-        my_mankalah = board[side.value][cls.MANKALAH]
-        opponent_mankalah = board[side.opposite().value][cls.MANKALAH]
-        return sum(board[side.value]) - sum(board[side.opposite().value])
+        opponent_mankalah = board[self.agent.side.opposite().value][self.MANKALAH]
+        my_mankalah = board[self.agent.side.value][self.MANKALAH]
+        return my_mankalah - opponent_mankalah
 
     @classmethod
     def game_over(cls, board):
         return np.sum(board[Side.NORTH.value][:-1]) == 0 or np.sum(board[Side.SOUTH.value][:-1]) == 0
 
-    # TODO correctly annotate the return type
     def game_score(self, board) -> np.ndarray:
         opponent_score = np.sum(board[self.agent.side.opposite().value])
         my_score = np.sum(board[self.agent.side.value])
