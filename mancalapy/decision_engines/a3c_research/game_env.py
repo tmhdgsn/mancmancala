@@ -1,3 +1,5 @@
+from copy import deepcopy
+
 import numpy as np
 
 from side import Side
@@ -18,8 +20,8 @@ def score(init_game_state, new_state):
     """
     # init_side
     if init_game_state[-1] == 1:
-        return init_game_state[15] - new_state[15]
-    return init_game_state[7] - new_state[7]
+        return new_state[15] - init_game_state[15]
+    return new_state[7] - init_game_state[7]
 
 
 def step(init_game_state, action):
@@ -35,7 +37,7 @@ def step(init_game_state, action):
     init_game_state = init_game_state[0]
     # last index is side
     side = Side(init_game_state[-1])
-    board = np.reshape(init_game_state[:-1], (2, 8))
+    board = np.reshape(deepcopy(init_game_state[:-1]), (2, 8))
     repeat_go = DecisionEngine.play_hole(action, board, side)
     side = side if repeat_go else side.opposite()
     new_state = A3CDecisionEngine.flatten_game(board, side)

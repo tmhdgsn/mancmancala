@@ -20,13 +20,11 @@ class ActorCriticNetwork:
         self.init_graph = kwargs.get("init_graph")
         self.state_size = kwargs.get("state_size", 17)
         self.model_name = kwargs.get("param_file", "best-weights")
-        self.value_loss = 0
-        self.policy_loss = 0
         # self.state = None# Will be set implicitly by tensorflow
         self.c_init = np.zeros((1, self.lstm_size), np.float32)
         self.h_init = np.zeros((1, self.lstm_size), np.float32)
 
-        self.sess = tf.Session()
+        self.sess = kwargs.get("sess", tf.Session())
 
         # initialize the computational graph
         with self.scope:
