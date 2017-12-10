@@ -9,7 +9,7 @@ from side import Side
 
 @pytest.fixture(scope="module")
 def mock_agent():
-    return Agent("basic")
+    return Agent("a3c")
 
 
 @mock.patch('builtins.input')

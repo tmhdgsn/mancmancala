@@ -68,14 +68,17 @@ class Worker(ActorCriticNetwork):
 
                 init_game_state = env.reset()
                 episode_frames.append(init_game_state)
+                lstm_c_state, lstm_h_state = self.c_init, self.h_init
                 for i in range(30):
                     while not game_over:
                         # get an action distribution and estimate value from policy
-                        action_distribution, estimated_value, rnn_state = sess.run([
-                            self.actor_output, self.critic_output, self.state],
+                        action_distribution, estimated_value, lstm_c_state, lstm_h_state = sess.run([
+                            self.actor_output, self.critic_output, self.c_state, self.h_state],
                             feed_dict={
                                 self.inputs: init_game_state,
                                 self.dropout_prob: 0.2,
+                                self.c_state: lstm_c_state,
+                                self.h_state: lstm_h_state
                             }
                         )
 

@@ -19,18 +19,20 @@ class ActorCriticNetwork:
         self.actor_output = kwargs.get("actor_output")
         self.init_graph = kwargs.get("init_graph")
         self.state_size = kwargs.get("state_size", 17)
-        self.model_name = kwargs.get("param_file")
-        self.state = None  # Will be set implicitly by tensorflow
+        self.model_name = kwargs.get("param_file", "best-weights")
+        # self.state = None# Will be set implicitly by tensorflow
 
         self.sess = tf.Session()
 
         # initialize the computational graph
         with self.scope:
             self.initialize_scope(self.scope)
-            if self.model_name and os.path.isfile(f"{self.model_name}.meta"):
+            model_path = os.path.expanduser('~/' + self.model_name)
+            if self.model_name and os.path.isfile(model_path + '.ckpt.meta'):
                 saver = tf.train.Saver()
-                saver.restore(self.sess, self.model_name)
-                self.sess.run()
+                saver.restore(self.sess, model_path + '.ckpt')
+                self.c_in = self.c_init
+                self.h_in = self.h_init
             else:
                 self.init_graph = tf.global_variables_initializer()
                 self.sess.run(self.init_graph)
@@ -48,15 +50,24 @@ class ActorCriticNetwork:
         encoded_inputs = tf.contrib.layers.fully_connected(self.inputs, self.num_outputs)
         rnn_inputs = tf.expand_dims(encoded_inputs, [1])
         # Forming an LSTM Layer
-        lstm = tf.contrib.rnn.BasicLSTMCell(self.lstm_size)
-        drop = tf.contrib.rnn.DropoutWrapper(lstm, output_keep_prob=self.dropout_prob)
-        cell = tf.contrib.rnn.MultiRNNCell([drop] * self.lstm_layers)
+        self.lstm = tf.contrib.rnn.BasicLSTMCell(self.lstm_size, state_is_tuple=True)
+        #drop = tf.contrib.rnn.DropoutWrapper(lstm, output_keep_prob=self.dropout_prob)
+        #self.cell = tf.contrib.rnn.MultiRNNCell([drop] * self.lstm_layers)
+
+        self.c_init = np.zeros((1, self.lstm.state_size.c), np.float32)
+        self.h_init = np.zeros((1, self.lstm.state_size.h), np.float32)
+
+        self.c_state = tf.placeholder(dtype=tf.float32, shape=[1, self.lstm.state_size.c])
+        self.h_state = tf.placeholder(dtype=tf.float32, shape=[1, self.lstm.state_size.h])
+        state = tf.contrib.rnn.LSTMStateTuple(self.c_state, self.h_state)
 
         # Get the outputs and the final_state, which need to be fed in the Value and Policy network
         # final state comprises of c and h
-        outputs, self.state = tf.nn.dynamic_rnn(
-            cell, rnn_inputs, dtype=tf.float32, initial_state=self.state
+        outputs, state = tf.nn.dynamic_rnn(
+            self.lstm, rnn_inputs, dtype=tf.float32, initial_state=state
         )
+
+        self.c_state, self.h_state = state
 
         # calculate the value of move
         self.critic_output = tf.contrib.layers.fully_connected(
@@ -72,6 +83,8 @@ class ActorCriticNetwork:
         feed = {
             self.inputs: game_board,
             self.dropout_prob: kwargs.get("dropout_prob", 0.2),
+            self.c_state: self.c_in,
+            self.h_state: self.h_in
         }
         critic_output, actor_output = self.sess.run([self.critic_output, self.actor_output], feed_dict=feed)
 

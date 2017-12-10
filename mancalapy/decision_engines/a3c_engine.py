@@ -6,7 +6,7 @@ import numpy as np
 class A3CDecisionEngine(DecisionEngine):
     def __init__(self, agent):
         super().__init__(agent)
-        self.model = ActorCriticNetwork(param_file="best_weights")
+        self.model = ActorCriticNetwork(param_file="best-weights")
 
     @staticmethod
     def flatten_game(game_board, side):
@@ -21,8 +21,17 @@ class A3CDecisionEngine(DecisionEngine):
         return np.expand_dims(np.concatenate((game_board.flatten(), [side.value])), axis=0)
 
     def get_move(self, game=None) -> int:
+        game = game if game else self.agent.board
         _, actor_output = self.model(self.flatten_game(game, self.agent.side))
-        return int(np.argmax(actor_output))
+        legal_moves = self.get_legal_moves(game, self.agent.side)
+        actor_output = np.squeeze(actor_output)
+        best_mv = 0
+        mv_prob = -float('inf')
+        for mv in legal_moves:
+            if mv_prob < actor_output[mv]:
+                mv_prob = actor_output[mv]
+                best_mv = mv
+        return best_mv + 1
 
     def __str__(self):
         return "AC3 Engine"
