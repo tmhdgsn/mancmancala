@@ -47,7 +47,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
             best_move = -1
 
         for play in self.get_legal_moves(board, self.agent.side.opposite()):
-            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side.opposite(), board, play)
+            next_board, repeat = self.get_next_board(agent_has_moved, self.agent.side.opposite(), board, play)
             _, reward = self.min_max(next_board, max_depth - 1) \
                 if repeat else self.max_min(next_board, max_depth - 1)
 
@@ -82,7 +82,7 @@ class MiniMaxDecisionEngine(DecisionEngine):
 
         # for each hole on my side
         for play in self.get_legal_moves(board, self.agent.side):
-            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side, board, play)
+            next_board, repeat = self.get_next_board(agent_has_moved, self.agent.side, board, play)
             _, reward = self.max_min(next_board, max_depth - 1) \
                 if repeat else self.min_max(next_board, max_depth - 1, agent_has_moved)
             # maximize the reward
@@ -134,7 +134,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
 
         for play in self.get_legal_moves(board, self.agent.side.opposite()):
             # copy board and play move
-            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side.opposite(), board, play)
+            next_board, repeat = self.get_next_board(agent_has_moved, self.agent.side.opposite(), board, play)
             _, reward = self.min_max(next_board, alpha, beta, max_depth - 1) \
                 if repeat else self.max_min(next_board, alpha, beta, max_depth - 1)
 
@@ -172,7 +172,7 @@ class AlphaBetaMiniMaxDecisionEngine(DecisionEngine):
 
         # for each hole on my side
         for play in self.get_legal_moves(board, self.agent.side):
-            next_board, repeat = self.get_next_boards(agent_has_moved, self.agent.side, board, play)
+            next_board, repeat = self.get_next_board(agent_has_moved, self.agent.side, board, play)
             _, reward = self.max_min(next_board, alpha, beta, max_depth - 1) \
                 if repeat else self.min_max(next_board, alpha, beta, max_depth - 1, agent_has_moved)
 

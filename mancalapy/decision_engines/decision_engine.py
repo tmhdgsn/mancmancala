@@ -1,5 +1,6 @@
-import numpy as np
 from copy import deepcopy
+
+import numpy as np
 
 from side import Side
 
@@ -42,16 +43,16 @@ class DecisionEngine:
         my_score = np.sum(board[self.agent.side.value])
         return my_score - opponent_score
 
-    def get_next_boards(self, agent_has_moved, side, board, play) -> (np.array, bool):
-        board_hash = self.hash(board)
-        if board_hash not in self.cache:
-            self.cache[board_hash] = {}
-        if play not in self.cache[board_hash]:
+    def get_next_board(self, agent_has_moved, side, board, play) -> (np.array, bool):
+        state_hash = (side, self.hash(board))
+        if state_hash not in self.cache:
+            self.cache[state_hash] = {}
+        if play not in self.cache[state_hash]:
             board_copy = deepcopy(board)
             repeat = self.play_hole(play, board_copy, side) and (agent_has_moved or self.agent.side == Side.NORTH)
-            self.cache[board_hash][play] = (board_copy, repeat)
+            self.cache[state_hash][play] = (board_copy, repeat)
             return board_copy, repeat
-        return self.cache[board_hash][play]
+        return self.cache[state_hash][play]
 
     @classmethod
     def play_hole(cls, hole, board_copy, agent_side) -> bool:
