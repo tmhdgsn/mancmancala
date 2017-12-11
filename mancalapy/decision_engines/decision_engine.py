@@ -1,8 +1,7 @@
-from copy import deepcopy
-
+import math
 import numpy as np
-
 from side import Side
+from copy import deepcopy
 
 
 class DecisionEngine:
@@ -30,9 +29,16 @@ class DecisionEngine:
         # H4: #of stones close to my home (1/3)
         # H5: #of stones away from my home (1/3)
         # H6: #of stone in the middle (1/3)
-        opponent_mankalah = board[self.agent.side.opposite().value][self.MANKALAH]
-        my_mankalah = board[self.agent.side.value][self.MANKALAH]
-        return my_mankalah - opponent_mankalah
+        score = 0
+        stones_agent_pit = board[self.agent.side.value][self.MANKALAH]
+        stones_opp_pit = board[self.agent.side.opposite().value][self.MANKALAH]
+        if stones_agent_pit != stones_opp_pit:
+            biggerPit = max(stones_agent_pit, stones_opp_pit)
+            smallerPit = min(stones_opp_pit, stones_agent_pit)
+            score = (1 / (biggerPit + 1) * math.fabs(biggerPit - smallerPit) + 1) * biggerPit
+        board_difference = sum(board[self.agent.side.value]) - sum(board[self.agent.side.opposite().value])
+        score += board_difference / 2
+        return score
 
     @classmethod
     def game_over(cls, board):
