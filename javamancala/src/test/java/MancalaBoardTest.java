@@ -14,7 +14,7 @@ public class MancalaBoardTest {
 
     @Test
     public void givenRawStrStateUpdateBoardCorrectly() {
-        this.mancalaBoard.updateBoard("0,0,0,0,0,0,0,20,1,21,14,14,13,13,2,1");
+        this.mancalaBoard.updateBoardFromRawState("0,0,0,0,0,0,0,20,1,21,14,14,13,13,2,1");
         int[][] expected = {
                 {0,0,0,0,0,0,0,20},
                 {1, 21, 14, 14, 13, 13, 2, 1}

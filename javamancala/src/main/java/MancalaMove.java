@@ -1,6 +1,10 @@
+public class MancalaMove implements Move {
+    int pit;
+    int side;
 
-public class MancalaMove implements Move{
-    public MancalaMove() {
+    public MancalaMove(int i, int side) {
+        this.pit = i;
+        this.side = side;
     }
 
     @Override

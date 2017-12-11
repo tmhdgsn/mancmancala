@@ -7,5 +7,6 @@ public class DecisionEngineFactory {
     public DecisionEngineFactory(Agent agent) {
         this.agent = agent;
         this.engines.put("basic", new BasicDecisionEngine(this.agent));
+        this.engines.put("mcts", new MCTSDecisionEngine(this.agent));
     }
 }

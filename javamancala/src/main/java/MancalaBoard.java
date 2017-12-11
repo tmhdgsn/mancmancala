@@ -1,8 +1,7 @@
-import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Collections;
 
-public class MancalaBoard implements Board {
+public class MancalaBoard {
     public int [][] board;
     public int holes;
     private int seeds;
@@ -36,39 +35,44 @@ public class MancalaBoard implements Board {
         return new MancalaBoard(this);
     }
 
-    public ArrayList<Move> getLegalMoves(CallLocation callLocation) {
-        return null;
-    }
-
-    public void playHole(Move m) {
-
+    public int[] getLegalMoves(Side side) {
+        //TODO improve god awful code
+        int nonzeroPits = 0;
+        for (int i = 0; i < this.holes + 1; i++) {
+            if (this.board[side.value][i] != 0) {
+                nonzeroPits++;
+            }
+        }
+        int[] legalMoves = new int[nonzeroPits];
+        for (int i = 0; i < this.holes + 1; i++) {
+            if (this.board[side.value][i] != 0) {
+                legalMoves[i] = i;
+            }
+        }
+        return legalMoves;
     }
 
     public boolean gameOver() {
-        return false;
-    }
-
-    public int getCurrentPlayer() {
-        return 0;
-    }
-
-    public int getQuantityOfPlayers() {
-        return 0;
+        boolean game_over = false;
+        int north_score = 0;
+        int south_score = 0;
+        int[] north = this.board[Side.NORTH.value];
+        int[] south = this.board[Side.SOUTH.value];
+        for (int i = 0; i < this.holes; i++){
+            north_score += north[i];
+            south_score += south[i];
+        }
+        if (south_score == 0 || north_score == 0) {
+            game_over = true;
+        }
+        return game_over;
     }
 
     public double[] getScore() {
         return new double[0];
     }
 
-    public double[] getMoveWeights() {
-        return new double[0];
-    }
-
-    public void bPrint() {
-
-    }
-
-    public void updateBoard(String raw_state) {
+    public void updateBoardFromRawState(String raw_state) {
         String[] pit_values = raw_state.split(",");
         for (int i = 0; i <= this.holes; i++){
             this.board[Side.NORTH.value][i] = Integer.parseInt(pit_values[i]);
@@ -78,4 +82,5 @@ public class MancalaBoard implements Board {
             this.board[Side.SOUTH.value][(this.holes - i)] = Integer.parseInt(pit_values[i]);
         }
     }
+
 }

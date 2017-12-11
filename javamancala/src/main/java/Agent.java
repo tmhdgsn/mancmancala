@@ -7,6 +7,7 @@ public class Agent {
     public Side side;
     private boolean hasMoved;
     private Scanner sc;
+    public boolean ourTurn;
 
     public Agent(String decisionEngine, int holes, int seeds, Scanner sc) {
         this.sc = sc;
@@ -41,7 +42,7 @@ public class Agent {
     }
 
     public void play(){
-        boolean ourTurn = false;
+        this.ourTurn = false;
         while (true) {
             String[] msgParts = this.getMessage();
             String msgType = msgParts[0];
@@ -54,19 +55,19 @@ public class Agent {
             if (msgType.toUpperCase().equals("START")) {
                 if (args.toUpperCase().equals("SOUTH")){
                     this.side = Side.SOUTH;
-                    ourTurn = true;
+                    this.ourTurn = true;
                 }
             }
 
             if (msgType.toUpperCase().equals("CHANGE")){
                 ourTurn = msgParts[msgParts.length - 1].toUpperCase().equals("YOU");
-                this.board.updateBoard(msgParts[msgParts.length - 2]);
+                this.board.updateBoardFromRawState(msgParts[msgParts.length - 2]);
                 if (args.toUpperCase().equals("SWAP")){
                     this.side = this.side.opposite();
                 }
                 //TODO: log output here for debug
             }
-            if (ourTurn) {
+            if (this.ourTurn) {
                 int move = this.engine.getMove();
                 this.playMove(move);
                 this.hasMoved = true;

@@ -1,34 +1,30 @@
-public class GameState {
-    int noOfPlays;
-    double score;
-    GameState[] children;
+import java.util.Objects;
 
-    public GameState(MancalaBoard initBoard) {
+class GameState {
+    MancalaBoard board;
+    int move;
+    Side side;
 
+    GameState(MancalaBoard board, int move, Side side) {
+        this.board = board;
+        this.move = move;
+        this.side = side;
     }
 
-    public void selectAction(){
 
+    @Override
+    public boolean equals(Object o) {
+        if (this == o) return true;
+        if (o == null || getClass() != o.getClass()) return false;
+        GameState gameState = (GameState) o;
+        return move == gameState.move &&
+                Objects.equals(board, gameState.board) &&
+                side == gameState.side;
     }
 
-    public void expand() {
+    @Override
+    public int hashCode() {
 
+        return Objects.hash(board, move, side);
     }
-
-    public GameState select() {
-
-    }
-
-    public boolean isEndGameState() {
-        return children == null;
-    }
-
-    public void updateGameStateScore(double value) {
-
-    }
-
-    public int getNoOfChildren() {
-        return children == null ? 0 : children.length;
-    }
-
 }

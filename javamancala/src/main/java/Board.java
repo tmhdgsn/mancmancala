@@ -1,5 +1,3 @@
-import java.util.ArrayList;
-
 public interface Board {
 
     /**
@@ -14,17 +12,16 @@ public interface Board {
      *
      * Call location can be either treePolicy or playout.
      *
-     * @param callLocation from where in the algo getLegalMoves was called.
      * @return list of legal moves
      */
-    public ArrayList<Move> getLegalMoves(CallLocation callLocation);
+    public int[] getLegalMoves(Side side);
 
     /**
      * Apply the move m to the current state of the board.
      *
      * @param m
      */
-    public void playHole(Move m);
+    public void playHole(int m);
 
     /**
      * if game is over return true

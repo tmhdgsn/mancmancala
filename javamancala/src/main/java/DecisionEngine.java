@@ -18,11 +18,11 @@ public abstract class DecisionEngine {
         return Arrays.deepToString(board.board).hashCode();
     }
 
-    ArrayList<Integer> getLegalMoves(MancalaBoard board, Side side) {
-        ArrayList<Integer> legalMoves = new ArrayList<>(board.holes);
+    ArrayList<MancalaMove> getLegalMoves(MancalaBoard board, Side side) {
+        ArrayList<MancalaMove> legalMoves = new ArrayList<>(board.holes);
         for (int i = 0; i < board.holes; i++) {
             if (board.board[side.value][i] != 0) {
-                legalMoves.add(i);
+                legalMoves.add(new MancalaMove(i, side.value));
             }
         }
         return legalMoves;
