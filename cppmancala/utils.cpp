@@ -21,6 +21,20 @@ namespace util {
     }
 
     void print_board(std::array<int, 16> board) {
+        // print north
+        auto north = board.rbegin() + 8;
+        std::cout << *north++ << " -- ";
+        for (auto item = north; item < board.rend(); ++item) {
+            std::cout << *item << " ";
+        }
 
+        std::cout << "\n";
+
+        // print south
+        auto south = board.begin() + 8;
+        for (auto item = south; item < board.end() - 1; item++) {
+            std::cout << *item << " ";
+        }
+        std::cout << " -- " << *(board.end() - 1) << std::endl;
     }
 }

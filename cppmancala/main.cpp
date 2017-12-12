@@ -4,11 +4,6 @@
 #include "utils.h"
 #include "decision_engine.h"
 
-
-static const int NORTH = 0;
-
-static const int SOUTH = 8;
-
 std::tuple<std::string, std::string> getmessage() {
     std::string input;
     std::cin >> input;
@@ -28,7 +23,7 @@ int main() {
     std::array<int, 16> board{};
     int move;
     char sep;
-    int side = NORTH;
+    int side = de::NORTH;
     std::string msg_type, args, player;
     while (true) {
         msg_args = getmessage();
@@ -36,13 +31,13 @@ int main() {
         args = std::get<1>(msg_args);
         if (msg_type == "START") {
             if (args == "South")
-                side = SOUTH;
+                side = de::SOUTH;
         } else if (msg_type == "CHANGE") {
             auto arg_stream = std::stringstream(args);
             arg_stream >> move;
             arg_stream >> sep;
-            for (int i = 0; i < 16; i++) {
-                arg_stream >> board[i];
+            for (auto pit = board.begin(); pit < board.end(); pit++) {
+                arg_stream >> *pit;
                 arg_stream >> sep;
             }
             arg_stream >> player;
