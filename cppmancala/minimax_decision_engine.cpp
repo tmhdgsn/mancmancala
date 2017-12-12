@@ -6,23 +6,22 @@
 #include "decision_engine.h"
 
 
-
 namespace minimax {
     std::tuple<double, int, bool>
-    max_min(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth);
+    max_min(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved);
 
     std::tuple<double, int, bool>
-    min_max(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth);
+    min_max(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved);
 
-    int get_move(std::array<int, 16> board, int side) {
+    int get_move(std::array<int, 16> board, int side, bool has_moved) {
         auto alpha = -std::numeric_limits<double>::infinity();
         auto beta = std::numeric_limits<double>::infinity();
-        auto reward_move = max_min(board, side, alpha, beta, 6);
+        auto reward_move = max_min(board, side, alpha, beta, 5, has_moved);
         return std::get<1>(reward_move);
     }
 
     std::tuple<double, int, bool>
-    max_min(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth) {
+    max_min(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved) {
         auto reward = -std::numeric_limits<double>::infinity();
         int best_move = -1;
         bool game_over = false;
@@ -39,6 +38,27 @@ namespace minimax {
         std::tuple<double, int, bool> child_state;
         double child_r;
 
+        // Check SWAP path
+        if (agent_side == de::NORTH && !agent_has_moved) {
+            // copy the board to represent the child
+            std::copy(board.begin(), board.end(), child_board.begin());
+
+            // recurse with to the minimizer
+            child_state = min_max(child_board, 8 - agent_side, alpha, beta, max_depth - 1, true);
+            child_r = std::get<0>(child_state);
+            game_over = std::get<2>(child_state);
+
+            // update the reward if child reward is higher
+            reward = std::max(reward, child_r);
+            // update alpha
+            alpha = std::max(alpha, reward);
+
+            // exit if reward is bigger than beta
+            if (reward >= beta) {
+                return {reward, -1, game_over};
+            }
+        }
+
         for (int pit_ind = 0; pit_ind < de::MANKALAH; pit_ind++) {
             // if legal move
             if (board[pit_ind + agent_side] > 0) {
@@ -47,10 +67,10 @@ namespace minimax {
                 repeat = std::get<1>(board_repeat_tuple);
 
                 // if it's our go again repeat
-                if (repeat) {
-                    child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1);
+                if (repeat && agent_has_moved) {
+                    child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1, true);
                 } else {
-                    child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1);
+                    child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1, agent_has_moved);
                 }
 
                 child_r = std::get<0>(child_state);
@@ -63,10 +83,10 @@ namespace minimax {
                 }
 
                 // update alpha
-                alpha = std::max(alpha, child_r);
+                alpha = std::max(alpha, reward);
 
                 // exit if reward is bigger than beta
-                if (reward > beta) {
+                if (reward >= beta) {
                     return {reward, pit_ind, game_over};
                 }
             }
@@ -76,7 +96,7 @@ namespace minimax {
     }
 
     std::tuple<double, int, bool>
-    min_max(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth) {
+    min_max(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved) {
         auto reward = std::numeric_limits<double>::infinity();
         int best_move = -1;
         bool game_over = false;
@@ -93,6 +113,27 @@ namespace minimax {
         std::tuple<double, int, bool> child_state;
         double child_r;
         int opp_side = 8 - agent_side;
+
+        // Check SWAP path for minimizer
+        if (opp_side == de::NORTH && !agent_has_moved) {
+            // copy the board to represent the child
+            std::copy(board.begin(), board.end(), child_board.begin());
+
+            // recurse with to the maximizer
+            child_state = max_min(child_board, opp_side, alpha, beta, max_depth - 1, true);
+            child_r = std::get<0>(child_state);
+            game_over = std::get<2>(child_state);
+
+            // update the reward if child reward is higher
+            reward = std::min(reward, child_r);
+            // update alpha
+            beta = std::min(beta, reward);
+
+            // exit if reward is bigger than beta
+            if (reward <= alpha) {
+                return {reward, -1, game_over};
+            }
+        }
         for (int pit_ind = 0; pit_ind < de::MANKALAH; pit_ind++) {
             // if legal move
             if (board[pit_ind + opp_side] > 0) {
@@ -102,9 +143,9 @@ namespace minimax {
 
                 // if it's our go again repeat
                 if (repeat) {
-                    child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1);
+                    child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1, true);
                 } else {
-                    child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1);
+                    child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1, true);
                 }
 
                 child_r = std::get<0>(child_state);
@@ -119,7 +160,7 @@ namespace minimax {
                 beta = std::min(reward, beta);
 
                 // exit if less than the max seen by parent
-                if (reward < alpha) {
+                if (reward <= alpha) {
                     return {reward, best_move, game_over};
                 }
             }

@@ -8,7 +8,7 @@
 #include <array>
 
 namespace minimax {
-    int get_move(std::array<int, 16> board, int side);
+    int get_move(std::array<int, 16> board, int side, bool has_moved);
 }
 
 namespace de {

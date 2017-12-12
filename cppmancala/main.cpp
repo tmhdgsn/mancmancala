@@ -16,9 +16,13 @@ std::tuple<std::string, std::string> getmessage() {
     std::string input;
     std::cin >> input;
     std::size_t sep = input.find(';');
-//    write_to_file("from engine: " + input);
+//    write_to_file(input);
     return {input.substr(0, sep), input.substr(sep + 1)};
 };
+//START;South
+//CHANGE;1;7,7,7,7,7,7,7,0,0,8,8,8,8,8,8,1;OPP
+//CHANGE;SWAP;7,7,7,7,7,7,7,0,0,8,8,8,8,8,8,1;YOU
+//END
 
 void make_move(int move) {
     if (move < 0)
@@ -28,8 +32,6 @@ void make_move(int move) {
     }
 }
 
-// CHANGE;1;0,0,0,0,0,7,6,34,0,4,1,1,1,1,0,43;YOU
-//CHANGE;3;1,11,10,9,9,8,8,1,8,0,0,9,1,10,10,3;YOU
 int main() {
     std::tuple<std::string, std::string> msg_args;
     std::array<int, 16> board{7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0};
@@ -39,6 +41,7 @@ int main() {
     int side = de::NORTH;
     std::string msg_type, args, player;
     bool our_go = false;
+    bool has_moved = false;
     while (true) {
         msg_args = getmessage();
         msg_type = std::get<0>(msg_args);
@@ -68,8 +71,12 @@ int main() {
             break;
         }
         if (our_go) {
-            move = minimax::get_move(board, side);
+            move = minimax::get_move(board, side, has_moved);
+            if (move < 0)
+                side = 8 - side;
             make_move(move);
+            if(!has_moved)
+                has_moved = true;
         }
     }
     return 0;
