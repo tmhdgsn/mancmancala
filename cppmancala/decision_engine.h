@@ -13,8 +13,13 @@ namespace minimax {
 
 namespace de {
     bool game_over(std::array<int, 16> board);
-    bool play_move(std::array<int, 16> board, int move, int side);
+
+    int game_score(std::array<int, 16> board, int side);
+
+    double heuristic(std::array<int, 16> board, int side);
+
     std::tuple<std::array<int, 16>, bool> get_next_board(std::array<int, 16> board, int move, int side);
+
     static const int NORTH = 0;
     static const int SOUTH = 8;
     static const int MANKALAH = 7;

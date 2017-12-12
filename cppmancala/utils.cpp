@@ -37,4 +37,6 @@ namespace util {
         }
         std::cout << " -- " << *(board.end() - 1) << std::endl;
     }
+
+
 }
