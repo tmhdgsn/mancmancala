@@ -7,8 +7,16 @@
 
 #include <array>
 
-namespace minimax{
+namespace minimax {
     int get_move(std::array<int, 16> board, int side);
 }
 
+namespace de {
+    bool game_over(std::array<int, 16> board);
+    bool play_move(std::array<int, 16> board, int move, int side);
+    std::tuple<std::array<int, 16>, bool> get_next_board(std::array<int, 16> board, int move, int side);
+    static const int NORTH = 0;
+    static const int SOUTH = 8;
+    static const int MANKALAH = 7;
+}
 #endif //CPLUSMANCALA_DECISION_ENGINE_H
