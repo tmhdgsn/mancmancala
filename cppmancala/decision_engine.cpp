@@ -64,8 +64,9 @@ namespace de {
                 hole = board.begin();
             }
         }
+        // capture if possible
         auto opposite_hole = board.begin() + (my_mankalah - 1 - hole + opp_side);
-        if (hole < my_mankalah && hole >= my_start_hole && *hole == 0 && *opposite_hole > 0) {
+        if (hole >= my_start_hole && hole < my_mankalah && *hole == 0 && *opposite_hole > 0) {
             *my_mankalah += *opposite_hole;
             (*my_mankalah)++;
             return {board, false};
