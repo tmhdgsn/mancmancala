@@ -2,8 +2,7 @@
 <project version="4">
   <component name="ChangeListManager">
     <list default="true" id="09d9f8e1-21d8-4735-bfb8-e771ba4df2ee" name="Default" comment="">
-      <change beforePath="$PROJECT_DIR$/mancalapy/decision_engines/decision_engine.py" afterPath="$PROJECT_DIR$/mancalapy/decision_engines/decision_engine.py" />
-      <change beforePath="$PROJECT_DIR$/mancalapy/game.py" afterPath="$PROJECT_DIR$/mancalapy/game.py" />
+      <change beforePath="$PROJECT_DIR$/mancmancala" afterPath="$PROJECT_DIR$/mancmancala" />
     </list>
     <option name="EXCLUDED_CONVERTED_TO_IGNORED" value="true" />
     <option name="TRACKING_ENABLED" value="true" />
@@ -387,7 +386,7 @@
       <window_info id="TODO" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.33" sideWeight="0.5" order="6" side_tool="false" content_ui="tabs" />
       <window_info id="Event Log" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="1.0" sideWeight="0.4679878" order="0" side_tool="true" content_ui="tabs" />
       <window_info id="Documentation" active="false" anchor="right" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.15015244" sideWeight="0.5" order="3" side_tool="false" content_ui="tabs" x="0" y="0" width="206" height="541" />
-      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.7267951" sideWeight="0.52210367" order="1" side_tool="false" content_ui="tabs" />
+      <window_info id="Version Control" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.3625219" sideWeight="0.52210367" order="1" side_tool="false" content_ui="tabs" />
       <window_info id="Python Console" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.21716288" sideWeight="0.5" order="4" side_tool="false" content_ui="tabs" />
       <window_info id="Run" active="false" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="false" show_stripe_button="true" weight="0.46059546" sideWeight="0.49791667" order="2" side_tool="false" content_ui="tabs" />
       <window_info id="Terminal" active="true" anchor="bottom" auto_hide="false" internal_type="DOCKED" type="DOCKED" visible="true" show_stripe_button="true" weight="0.34150612" sideWeight="0.5320122" order="5" side_tool="false" content_ui="tabs" />
@@ -769,7 +768,7 @@
     </entry>
     <entry file="file://$PROJECT_DIR$/totalstones.txt">
       <provider selected="true" editor-type-id="text-editor">
-        <state relative-caret-position="-4043511">
+        <state relative-caret-position="0">
           <caret line="0" column="0" lean-forward="false" selection-start-line="0" selection-start-column="0" selection-end-line="0" selection-end-column="0" />
           <folding />
         </state>
