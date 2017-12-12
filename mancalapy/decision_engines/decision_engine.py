@@ -30,13 +30,15 @@ class DecisionEngine:
         # H5: #of stones away from my home (1/3)
         # H6: #of stone in the middle (1/3)
         score = 0
-        stones_agent_pit = board[self.agent.side.value][self.MANKALAH]
-        stones_opp_pit = board[self.agent.side.opposite().value][self.MANKALAH]
-        if stones_agent_pit != stones_opp_pit:
+        total_stones = sum(board[side.value]) + sum(board[side.opposite().value])
+        half_point = total_stones / 2
+        stones_agent_pit = board[side.value][self.MANKALAH]
+        stones_opp_pit = board[side.opposite().value][self.MANKALAH]
+        '''score = (stones_agent_pit / half_point) * 10
             biggerPit = max(stones_agent_pit, stones_opp_pit)
             smallerPit = min(stones_opp_pit, stones_agent_pit)
-            score = (1 / (biggerPit + 1) * math.fabs(biggerPit - smallerPit) + 1) * biggerPit
-        board_difference = sum(board[self.agent.side.value]) - sum(board[self.agent.side.opposite().value])
+            score = (1 / (biggerPit + 1) * math.fabs(biggerPit - smallerPit) + 4) * biggerPit'''
+        board_difference = sum(board[side.value]) - sum(board[side.opposite().value])
         score += board_difference / 2
         return score
 

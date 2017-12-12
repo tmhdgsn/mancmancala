@@ -11,6 +11,7 @@ def print_board(board):
     north = "%d -- %s" % (north[-1], " ".join(map(str, reversed(north[:7]))))
     south = "%s -- %d" % (" ".join(map(str, south[:7])), south[-1])
     print(f"{north}\n{south}")
+    print(f"{north}\n{south}", file=open("output.txt", "a"))
 
 
 def create_board(holes: int = 7, seeds: int = 7) -> np.array:
