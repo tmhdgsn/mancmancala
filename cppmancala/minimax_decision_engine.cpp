@@ -7,11 +7,6 @@
 
 
 namespace minimax {
-    std::tuple<double, int, bool>
-    max_min(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved);
-
-    std::tuple<double, int, bool>
-    min_max(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved);
 
     int get_move(std::array<int, 16> board, int side, bool has_moved) {
         auto alpha = -std::numeric_limits<double>::infinity();

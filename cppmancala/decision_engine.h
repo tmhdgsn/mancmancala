@@ -9,6 +9,16 @@
 
 namespace minimax {
     int get_move(std::array<int, 16> board, int side, bool has_moved);
+        std::tuple<double, int, bool>
+    max_min(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved);
+
+    std::tuple<double, int, bool>
+    min_max(std::array<int, 16> board, int agent_side, double alpha, double beta, int max_depth, bool agent_has_moved);
+
+}
+
+namespace mtd {
+    int get_move(std::array<int, 16> board, int side, bool has_moved);
 }
 
 namespace de {
