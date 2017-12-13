@@ -1,4 +1,8 @@
 /Applications/CLion.app/Contents/bin/cmake/bin/cmake -DCMAKE_BUILD_TYPE=Debug -G "CodeBlocks - Unix Makefiles" /Users/harshdeep/COMP34120/mancmancala/cppmancala
--- Configuring done
--- Generating done
--- Build files have been written to: /Users/harshdeep/COMP34120/mancmancala/cppmancala/cmake-build-debug
+CMake Error at CMakeLists.txt:6 (add_subdirectory):
+  add_subdirectory given source "lib/googletest" which is not an existing
+  directory.
+
+
+-- Configuring incomplete, errors occurred!
+See also "/Users/harshdeep/COMP34120/mancmancala/cppmancala/cmake-build-debug/CMakeFiles/CMakeOutput.log".
