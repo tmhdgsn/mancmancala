@@ -32,7 +32,7 @@ namespace de {
         for (auto pit = board.begin() + side; pit < board.begin() + side + de::MANKALAH + 1; pit++) {
             my_score += *pit;
         }
-        for (auto pit = board.begin() + opp_side; pit < board.begin() + opp_side + de::MANKALAH + 1; pit++) {
+        for (auto pit = board.begin() + opp_side; pit < board.begin() + opp_side + de::MANKALAH; pit++) {
             opponent_score += *pit;
         }
         return my_score - opponent_score;
