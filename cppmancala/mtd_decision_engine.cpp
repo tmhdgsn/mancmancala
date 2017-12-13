@@ -15,8 +15,8 @@ namespace mtd {
     int get_move(std::array<int, 16> board, int side, bool has_moved) {
         std::tuple<double, int, bool> first_guess_move;
         auto move = -1;
-        bool game_over = false; // have we reached a terminal node
-        for (int depth = 1; depth < 11; depth++) {
+        bool game_over; // have we reached a terminal node
+        for (int depth = 1; depth < 15; depth++) {
             first_guess_move = mtdf(firstguess, board, side, depth, has_moved);
             firstguess = std::get<0>(first_guess_move);
             move = std::get<1>(first_guess_move);

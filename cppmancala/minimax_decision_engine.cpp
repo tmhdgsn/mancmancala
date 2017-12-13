@@ -11,7 +11,7 @@ namespace minimax {
     int get_move(std::array<int, 16> board, int side, bool has_moved) {
         auto alpha = -std::numeric_limits<double>::infinity();
         auto beta = std::numeric_limits<double>::infinity();
-        auto reward_move = max_min(board, side, alpha, beta, 5, has_moved);
+        auto reward_move = max_min(board, side, alpha, beta, 15, has_moved);
         return std::get<1>(reward_move);
     }
 
@@ -54,7 +54,7 @@ namespace minimax {
             }
         }
 
-        for (int pit_ind = 0; pit_ind < de::MANKALAH; pit_ind++) {
+        for (int pit_ind = de::MANKALAH - 1; pit_ind >= 0; pit_ind--) {
             // if legal move
             if (board[pit_ind + agent_side] > 0) {
                 board_repeat_tuple = de::get_next_board(board, pit_ind, agent_side);
@@ -129,7 +129,7 @@ namespace minimax {
                 return {reward, -1, game_over};
             }
         }
-        for (int pit_ind = 0; pit_ind < de::MANKALAH; pit_ind++) {
+        for (int pit_ind = de::MANKALAH - 1; pit_ind >= 0; pit_ind--) {
             // if legal move
             if (board[pit_ind + opp_side] > 0) {
                 board_repeat_tuple = de::get_next_board(board, pit_ind, opp_side);
