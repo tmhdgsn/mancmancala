@@ -6,7 +6,7 @@
 #include <fstream>
 
 void write_to_file(const std::string &input) {
-    const char *path = "/home/damel/git/mancmancala/output.txt";
+    const char *path = "~/git/mancmancala/output.txt";
     std::ofstream output_file(path, std::ios_base::app);
     output_file << input << std::endl;
     output_file.close();
@@ -16,13 +16,9 @@ std::tuple<std::string, std::string> getmessage() {
     std::string input;
     std::cin >> input;
     std::size_t sep = input.find(';');
-//    write_to_file(input);
+    write_to_file(input);
     return {input.substr(0, sep), input.substr(sep + 1)};
 };
-//START;South
-//CHANGE;1;7,7,7,7,7,7,7,0,0,8,8,8,8,8,8,1;OPP
-//CHANGE;SWAP;7,7,7,7,7,7,7,0,0,8,8,8,8,8,8,1;YOU
-//END
 
 void make_move(int move) {
     if (move < 0)
