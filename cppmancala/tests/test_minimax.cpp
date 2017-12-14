@@ -4,8 +4,7 @@
 
 
 #include <gtest/gtest.h>
-#include <gmock/gmock.h>
-#include "../decision_engine.h"
+#include "../src/decision_engine.h"
 
 namespace minimax {
 

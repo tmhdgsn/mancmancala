@@ -3,8 +3,7 @@
 #include <tuple>
 #include "decision_engine.h"
 #include <fstream>
-#include "gtest/gtest.h"
-#include "gmock/gmock.h"
+#include "agent.h"
 
 void write_to_file(const std::string &input) {
     const char *path = "~/git/mancmancala/output.txt";
@@ -29,14 +28,14 @@ void make_move(int move) {
     }
 }
 
-void run_game() {
-    std::tuple<std::string, std::string> msg_args;
+void run() {
+    std::tuple<std::__cxx11::string, std::__cxx11::string> msg_args;
     std::array<int, 16> board{7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0};
     int move;
-    std::string last_move;
+    std::__cxx11::string last_move;
     char sep;
     int side = de::NORTH;
-    std::string msg_type, args, player;
+    std::__cxx11::string msg_type, args, player;
     bool our_go = false;
     bool has_moved = false;
     while (true) {
@@ -76,22 +75,5 @@ void run_game() {
                 has_moved = true;
         }
     }
-}
-
-// unable to find tests without this test runner
-void run_tests(int argc, char **argv) {
-    testing::InitGoogleTest(&argc, argv);
-    RUN_ALL_TESTS();
-}
-
-int main(int argc, char **argv) {
-    bool tests = false; // by default dont run tests
-    if (tests) {
-        run_tests(argc, argv);
-    }
-    else {
-        run_game();
-    }
-    return 0;
 }
 

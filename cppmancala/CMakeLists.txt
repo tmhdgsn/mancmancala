@@ -3,10 +3,20 @@ project(cppmancala)
 
 set(CMAKE_CXX_STANDARD 17)
 
-add_subdirectory(lib/googletest)
-include_directories(lib/googletest/googletest/include)
-include_directories(lib/googletest/googlemock/include)
+# Set the default build type to 'Release'
+if (NOT CMAKE_BUILD_TYPE)
+	set(default_build_type "Release")
+	message(STATUS "Setting build type to '${default_build_type}' as none was specified.")
+	set(CMAKE_BUILD_TYPE "${default_build_type}" CACHE STRING "Choose the type of build." FORCE)
+endif()
 
-add_executable(cplusmancala main.cpp utils.h utils.cpp decision_engine.h minimax_decision_engine.cpp decision_engine.cpp mcts_decision_engine.cpp mtd_decision_engine.cpp tests/test_de.cpp tests/test_minimax.cpp)
+option(TEST "Build tests." OFF)
 
-target_link_libraries(cplusmancala gtest gtest_main)
+# Now simply link against gtest or gtest_main as needed. Eg
+add_subdirectory(src)
+add_subdirectory(main_app)
+
+if(TEST)
+    add_subdirectory(tests)
+endif(TEST)
+
