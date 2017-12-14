@@ -1,7 +1,7 @@
 # mancmancala
 
 Methods Implemented:
-  * MinMax Variants (python and C++)
+  * MinMax Variants (python and C++) (several heurstics experimented with)
     * AlphaBeta Pruning
     * MTD
   * Monte Carlo Tree Search (python and C++)
@@ -17,16 +17,42 @@ Whilst *min* will always look to minimise their score, *max* will always look to
 
 With a branching factor of 7, its obvious we cannot construct the whole Mancala game tree, so we set a predefined depth that we wish to look ahead and score each of the leaf nodes we reach.
 
-In order to score a given game state, we implement a heuristic function. 
-We experimented with multiple heuristics listed below, before finally settling on option 3.
-  * heuristic 1
-  * heuristic 2
-  * Difference between Mancalas
-  
+In order to score a given game state, we implement a **heuristic** function. 
+
+Mancala comprises of few rules, but two in particular that we can look to exploit to maximise our score whilst also attempting to reduce the opponents. Based off these rules we can construct heuristics that incentivise us to pick the board  
+
+*Capture Rule*
+> If your move results in the last seed being deposited into an empty hole on the opponents side of the board, then you capture all of the seeds in the oppposite hole, plus your original seed.
+
+*Chain Rule* 
+> If the last seed deposited on your move lands in your Mancala, it is your turn again. 
+
+We experimented with multiple heuristics listed below, before finally settling on option 4.
+  1. *Difference between Mancalas* (Score)
+  2. *Offensive Capture*: incentivise choosing boards with more capture opportunites for yourself.
+  3. *Defensive Capture*: incentivise moves that reduce  the number of capture opportunies for your opponent.
+  4. *Chaining Potential*: incentivise moves that repeat your turn. 
+  5. *Hoarding Stategy*: look to pick boards that maximise the number of seeds in the 2 pits closest to our mancala.
+     
+Final Heuristic 6: 
+Having experimented with a few heuristics we designed a final option as a weighted linear combination of our strategies.
+Given a game state X, we define:
+x1 := difference between mancalas
+x2 := number of capturing opportunities for yourself. 
+x3 := opponents capturing opportunities 
+x4 := num of potential chaining opportunities.
+x5 := total hoard 
+
+Since we wish to maximise all but x3, we will have positive weights to encourage such action and a negative weight to reduce the opponents potential to capture. Having experimented to find the optimal weights for their corresponding feature, we settled on the values below. We arrived at these values through repeated simulations of all variants of the weights in the range (0, 2.0) with increments of 0.1
+
+w1 = 1.5, w2 = 1.2, w3 = -1, w4 = 1, w5 = 1
+
 Once the max depth has been reached we propagate the scores back up the paths taken, updating each game state. We now pick the best move based on this propagated score.
   
   #### MinMax (Alpha Beta Pruning)
-The AlphaBeta algorithm is simply a layering over the MinMax that helps to increase the maximum depth we can generate our game tree to. It does this by the use of two parameters Alpha and Beta that keep track of the score limits reachable by nodes we have explored. Upon finding a game state that has a score (in the case of min) less than our Beta bound, we *cut* off the appropriate subtree as we know now not to explore it. 
+The AlphaBeta algorithm is simply a layering over the MinMax that helps to increase the maximum depth we can generate our game tree to. It does this by the use of two parameters Alpha and Beta that keep track of the score limits reachable by nodes we have explored. Upon finding a game state that has a score (in the case of min) less than our Beta bound, we *cut* off the appropriate subtree as we know now not to explore it. This gives us vast improvements in the depth reachable by our algorithm, going from a depth of 7 to 15. With our original implementation in python, we rewrote our AlphaBeta MinMax algorithm in C++ for performance gains. As well as this we incorporated iterative deepening. Rather than predefine a depth for each iteration, we simply set a timer and iterate, going deeper on each iteration until the timer runs out.
+
+This lead to us seeing at some parts of the game tree, our algorithm reaching a depth of 21. 
   
   #### MinMax (MTD)
   
