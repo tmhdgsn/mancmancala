@@ -3,16 +3,29 @@
 //
 #include <tuple>
 #include <iostream>
+#include <ctime>
 #include "decision_engine.h"
 
 
 namespace minimax {
 
     int get_move(std::array<int, 16> board, int side, bool has_moved) {
-        auto alpha = -std::numeric_limits<double>::infinity();
-        auto beta = std::numeric_limits<double>::infinity();
-        auto reward_move = max_min(board, side, alpha, beta, 15, has_moved);
-        return std::get<1>(reward_move);
+        int move = -1;
+        bool game_over;
+        double alpha;
+        double beta;
+        std::tuple<double, int, bool> reward_move;
+        const auto now = std::time(nullptr) + 2;
+        for (int depth = 1; depth < 40; depth++) {
+            alpha = -std::numeric_limits<double>::infinity();
+            beta = std::numeric_limits<double>::infinity();
+            reward_move = max_min(board, side, alpha, beta, depth, has_moved);
+            move = std::get<1>(reward_move);
+            game_over = std::get<2>(reward_move);
+            if (game_over or std::time(nullptr) >= now)
+                break;
+        }
+        return move;
     }
 
     std::tuple<double, int, bool>

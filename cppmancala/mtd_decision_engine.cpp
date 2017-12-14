@@ -4,6 +4,7 @@
 //
 
 #include <tuple>
+#include <ctime>
 #include "decision_engine.h"
 
 namespace mtd {
@@ -16,12 +17,14 @@ namespace mtd {
         std::tuple<double, int, bool> first_guess_move;
         auto move = -1;
         bool game_over; // have we reached a terminal node
-        for (int depth = 1; depth < 15; depth++) {
+        std::tuple<double, int, bool> reward_move;
+        const auto now = std::time(nullptr) + 30;
+        for (int depth = 1; depth < 24; depth++) {
             first_guess_move = mtdf(firstguess, board, side, depth, has_moved);
             firstguess = std::get<0>(first_guess_move);
             move = std::get<1>(first_guess_move);
             game_over = std::get<2>(first_guess_move);
-            if (game_over)
+            if (game_over or std::time(nullptr) >= now)
                 break;
         }
         return move;
