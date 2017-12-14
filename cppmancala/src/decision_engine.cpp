@@ -84,10 +84,9 @@ namespace de {
         }
 
         // TODO experiment with the game to learn good parameters
-        double w1 = 1.5, w2 = 1.2, w3 = 1, w4 = 1, w5 = 1;
+        double w1 = 0.45, w2 = 0.05, w3 = 0.10, w4 = 0.3, w5 = 0.10;
         return w1 * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
     }
-
 
     int number_of_seeds_i_can_capture(std::array<int, 16> board, int side) {
         int captures = 0;
@@ -98,7 +97,7 @@ namespace de {
         std::array<int, 16>::iterator opp_land_place;
         for (auto hole = board.begin() + side; hole < my_mankalah; hole++) {
             distance = int(my_mankalah - hole);
-            land_place = board.begin() + side + (*hole - distance - 8);
+            land_place = *hole < distance ? (*hole + hole): board.begin() + side + (*hole - distance - 8);
             opp_land_place = board.begin() + (my_mankalah - 1 - hole + opp_side);
             if (*hole < 16 && (*hole < distance || *hole - distance > 7)
                 && (*hole == 15 || *land_place > 0)) {
@@ -131,6 +130,7 @@ namespace de {
         auto opposite_hole = board.begin() + (my_mankalah - 1 - hole + opp_side);
         if (hole >= my_start_hole && hole < my_mankalah && *hole == 0 && *opposite_hole > 0) {
             *my_mankalah += *opposite_hole;
+            *opposite_hole = 0;
             (*my_mankalah)++;
             return {board, false};
         }

@@ -19,7 +19,7 @@ namespace mtd {
         bool game_over; // have we reached a terminal node
         std::tuple<double, int, bool> reward_move;
         const auto now = std::time(nullptr) + 30;
-        for (int depth = 1; depth < 24; depth++) {
+        for (int depth = 5; depth < 24; depth++) {
             first_guess_move = mtdf(firstguess, board, side, depth, has_moved);
             firstguess = std::get<0>(first_guess_move);
             move = std::get<1>(first_guess_move);

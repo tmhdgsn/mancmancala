@@ -6,7 +6,7 @@
 #include "agent.h"
 
 void write_to_file(const std::string &input) {
-    const char *path = "~/git/mancmancala/output.txt";
+    const char *path = "/home/damel/git/mancmancala/output.txt";
     std::ofstream output_file(path, std::ios_base::app);
     output_file << input << std::endl;
     output_file.close();
@@ -16,7 +16,7 @@ std::tuple<std::string, std::string> getmessage() {
     std::string input;
     std::cin >> input;
     std::size_t sep = input.find(';');
-    write_to_file(input);
+//    write_to_file(input);
     return {input.substr(0, sep), input.substr(sep + 1)};
 };
 
