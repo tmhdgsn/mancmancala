@@ -6,6 +6,7 @@
 #define CPLUSMANCALA_DECISION_ENGINE_H
 
 #include <array>
+#include <vector>
 
 namespace minimax {
     int get_move(std::array<int, 16> board, int side, bool has_moved);
@@ -27,6 +28,10 @@ namespace de {
     int game_score(std::array<int, 16> board, int side);
 
     double heuristic(std::array<int, 16> board, int side);
+
+    std::vector<int> get_legal_moves(std::array<int, 16> board, int side);
+    std::vector<int> sorted_mvs_by_heuristics(std::array<int, 16> board, int side);
+
 
     std::tuple<std::array<int, 16>, bool> get_next_board(std::array<int, 16> board, int move, int side);
 

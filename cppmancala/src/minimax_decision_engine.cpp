@@ -1,6 +1,6 @@
 //
 // Created by damel on 12/12/17.
-//
+// edited by tom h on 14/12/17
 #include <tuple>
 #include <iostream>
 #include <ctime>
@@ -67,39 +67,36 @@ namespace minimax {
             }
         }
 
-        for (int pit_ind = de::MANKALAH - 1; pit_ind >= 0; pit_ind--) {
+        for (auto &pit : de::sorted_mvs_by_heuristics(board, agent_side)) {
             // if legal move
-            if (board[pit_ind + agent_side] > 0) {
-                board_repeat_tuple = de::get_next_board(board, pit_ind, agent_side);
-                child_board = std::get<0>(board_repeat_tuple);
-                repeat = std::get<1>(board_repeat_tuple);
+            board_repeat_tuple = de::get_next_board(board, pit, agent_side);
+            child_board = std::get<0>(board_repeat_tuple);
+            repeat = std::get<1>(board_repeat_tuple);
 
-                // if it's our go again repeat
-                if (repeat && agent_has_moved) {
-                    child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1, true);
-                } else {
-                    child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1, agent_has_moved);
-                }
+            // if it's our go again repeat
+            if (repeat && agent_has_moved) {
+                child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1, true);
+            } else {
+                child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1, agent_has_moved);
+            }
 
-                child_r = std::get<0>(child_state);
-                game_over = std::get<2>(child_state);
+            child_r = std::get<0>(child_state);
+            game_over = std::get<2>(child_state);
 
-                // update the reward if child reward is higher
-                if (child_r > reward) {
-                    reward = child_r;
-                    best_move = pit_ind;
-                }
+            // update the reward if child reward is higher
+            if (child_r > reward) {
+                reward = child_r;
+                best_move = pit;
+            }
 
-                // update alpha
-                alpha = std::max(alpha, reward);
+            // update alpha
+            alpha = std::max(alpha, reward);
 
-                // exit if reward is bigger than beta
-                if (reward >= beta) {
-                    return {reward, pit_ind, game_over};
-                }
+            // exit if reward is bigger than beta
+            if (reward >= beta) {
+                return {reward, pit, game_over};
             }
         }
-
         return {reward, best_move, game_over};
     }
 
@@ -142,35 +139,33 @@ namespace minimax {
                 return {reward, -1, game_over};
             }
         }
-        for (int pit_ind = de::MANKALAH - 1; pit_ind >= 0; pit_ind--) {
-            // if legal move
-            if (board[pit_ind + opp_side] > 0) {
-                board_repeat_tuple = de::get_next_board(board, pit_ind, opp_side);
-                child_board = std::get<0>(board_repeat_tuple);
-                repeat = std::get<1>(board_repeat_tuple);
 
-                // if it's our go again repeat
-                if (repeat) {
-                    child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1, true);
-                } else {
-                    child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1, true);
-                }
+        for (auto &pit : de::sorted_mvs_by_heuristics(board, opp_side)) {
+            board_repeat_tuple = de::get_next_board(board, pit, opp_side);
+            child_board = std::get<0>(board_repeat_tuple);
+            repeat = std::get<1>(board_repeat_tuple);
 
-                child_r = std::get<0>(child_state);
-                game_over = std::get<2>(child_state);
+            // if it's our go again repeat
+            if (repeat) {
+                child_state = min_max(child_board, agent_side, alpha, beta, max_depth - 1, true);
+            } else {
+                child_state = max_min(child_board, agent_side, alpha, beta, max_depth - 1, true);
+            }
 
-                // update the reward if child reward is lower
-                if (child_r < reward) {
-                    reward = child_r;
-                    best_move = pit_ind;
-                }
-                // update beta
-                beta = std::min(reward, beta);
+            child_r = std::get<0>(child_state);
+            game_over = std::get<2>(child_state);
 
-                // exit if less than the max seen by parent
-                if (reward <= alpha) {
-                    return {reward, best_move, game_over};
-                }
+            // update the reward if child reward is lower
+            if (child_r < reward) {
+                reward = child_r;
+                best_move = pit;
+            }
+            // update beta
+            beta = std::min(reward, beta);
+
+            // exit if less than the max seen by parent
+            if (reward <= alpha) {
+                return {reward, best_move, game_over};
             }
         }
         return {reward, best_move, game_over};

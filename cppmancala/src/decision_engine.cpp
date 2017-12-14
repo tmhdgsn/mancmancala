@@ -2,6 +2,7 @@
 // Created by damel on 12/12/17.
 //
 #include <tuple>
+#include <algorithm>
 #include "decision_engine.h"
 
 namespace de {
@@ -40,6 +41,26 @@ namespace de {
         return my_score - opponent_score;
     }
 
+    std::vector<int> get_legal_moves(std::array<int, 16> board, int side) {
+        std::vector<int> moves{};
+        for (int i = 0; i < MANKALAH; i++) {
+            if (board[i + side] > 0){
+                moves.push_back(i);
+            }
+        }
+        return moves;
+    }
+
+    std::vector<int> sorted_mvs_by_heuristics(std::array<int, 16> board, int side) {
+        auto moves = get_legal_moves(board, side);
+        // sort by score in tuple.
+        std::sort(moves.begin(), moves.end(), [board, side](auto const m1, auto const m2) {
+            return heuristic(std::get<0>(get_next_board(board, m1, side)), side) <
+                    heuristic(std::get<0>(get_next_board(board, m2, side)), side);
+        });
+        return moves;
+    }
+
     double heuristic(std::array<int, 16> board, int side) {
         int opp_side = 8 - side;
         // increase general score
@@ -66,6 +87,7 @@ namespace de {
         double w1 = 1.5, w2 = 1.2, w3 = 1, w4 = 1, w5 = 1;
         return w1 * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
     }
+
 
     int number_of_seeds_i_can_capture(std::array<int, 16> board, int side) {
         int captures = 0;
