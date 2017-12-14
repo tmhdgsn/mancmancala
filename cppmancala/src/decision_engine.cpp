@@ -6,6 +6,8 @@
 
 namespace de {
 
+    int number_of_seeds_i_can_capture(std::array<int, 16> board, int side);
+
     bool game_over(std::array<int, 16> board) {
         auto north_mankalah = board.begin() + MANKALAH;
         bool north_done = true, south_done = true;
@@ -48,32 +50,40 @@ namespace de {
         // hoard stones close to mankalah as they're harder to steal
         int hoard_size = *(my_mankalah - 1) + *(my_mankalah - 2);
         // reduce the number of easy captures
-        int easy_caps = 0;
+        int easy_caps = number_of_seeds_i_can_capture(board, 8 - side);
         // incentivize chaining
         int chaining_opportunities = 0;
         // incentivize capture opps
-        int capture_opportunities = 0;
+        int capture_opportunities = number_of_seeds_i_can_capture(board, side);
 
-        std::array<int, 16>::iterator opposite_hole;
         for (auto hole = board.begin() + side; hole < my_mankalah; hole++) {
-            opposite_hole = board.begin() + (my_mankalah - 1 - hole + opp_side);
-            // TODO make this condition more clever so it only considers actual threats
-            if (*opposite_hole == 0 || *opposite_hole == 15) {
-                easy_caps += 1;
-            }
             if (my_mankalah - hole == *hole) {
                 chaining_opportunities++;
             }
-            // TODO Add condition for capture opportunities
-            // if I don't land in my mankalah and
-            // seeds in opp hole reached after I move > 0
-            // and the hole I land in is either 0 or my hole
-            // on my side then increment capture opportunities
         }
 
         // TODO experiment with the game to learn good parameters
         double w1 = 1.5, w2 = 1.2, w3 = 1, w4 = 1, w5 = 1;
         return w1 * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
+    }
+
+    int number_of_seeds_i_can_capture(std::array<int, 16> board, int side) {
+        int captures = 0;
+        int distance;
+        int opp_side = 8 - side;
+        auto my_mankalah = board.begin() + side + MANKALAH;
+        std::array<int, 16>::iterator land_place;
+        std::array<int, 16>::iterator opp_land_place;
+        for (auto hole = board.begin() + side; hole < my_mankalah; hole++) {
+            distance = int(my_mankalah - hole);
+            land_place = board.begin() + side + (*hole - distance - 8);
+            opp_land_place = board.begin() + (my_mankalah - 1 - hole + opp_side);
+            if (*hole < 16 && (*hole < distance || *hole - distance > 7)
+                && (*hole == 15 || *land_place > 0)) {
+                captures += *opp_land_place;
+            }
+        }
+        return captures;
     }
 
     std::tuple<std::array<int, 16>, bool> get_next_board(std::array<int, 16> board, int move, int side) {
