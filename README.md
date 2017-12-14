@@ -34,18 +34,21 @@ We experimented with multiple heuristics listed below, before finally settling o
   4. *Chaining Potential*: incentivise moves that repeat your turn. 
   5. *Hoarding Stategy*: look to pick boards that maximise the number of seeds in the 2 pits closest to our mancala.
      
+    
 Final Heuristic 6: 
-Having experimented with a few heuristics we designed a final option as a weighted linear combination of our strategies.
+Having experimented with a few heuristics we designed a final option as a weighted linear combination of our some of our previous strategies.
+
+The idea behind heuristic number 5 was  to *starve* the opponent of seeds, with this we aimed to reduce the possible score to the opponent during the game but to also reap the benefits when an end state is reached. Whilst the strategy behind hoarding is correct we found encoding this into our heurstic often at times left us open to capture. Furthermore we feel that our heurstic number 3, implicitly incentivizes hoarding in order to cover empty holes on our side of the board. Rather than hardcoding specific pits to hoard seeds, our agent is able to adapt to the opponents strategy and identify where best to keep our seeds safe. 
+
 Given a game state X, we define:
-x1 := difference between mancalas
-x2 := number of capturing opportunities for yourself. 
-x3 := opponents capturing opportunities 
-x4 := num of potential chaining opportunities.
-x5 := total hoard 
+1. x1 := difference between mancalas 
+2. x2 := number of capturing opportunities for yourself. 
+3. x3 := opponents capturing opportunities 
+4. x4 := num of potential chaining opportunities.
 
-Since we wish to maximise all but x3, we will have positive weights to encourage such action and a negative weight to reduce the opponents potential to capture. Having experimented to find the optimal weights for their corresponding feature, we settled on the values below. We arrived at these values through repeated simulations of all variants of the weights in the range (0, 2.0) with increments of 0.1
+Since we wish to maximise all but x3, we will have positive weights to encourage such action and a negative weight to reduce the opponents potential to capture. Having experimented to find the optimal weights for their corresponding feature, we settled on the values below. We arrived at these values through repeated simulations of the game and ranking of scores.
 
-w1 = 1.5, w2 = 1.2, w3 = -1, w4 = 1, w5 = 1
+w1 = 1.5, w2 = 1.2, w3 = -1.7, w4 = 1
 
 Once the max depth has been reached we propagate the scores back up the paths taken, updating each game state. We now pick the best move based on this propagated score.
   
@@ -60,6 +63,7 @@ For each state of the game tree AlphaBeta works with a wide search window, where
 
 MTD on the otherhand initialises its search using a *minimal search window*, which simply means making a call to AlphaBeta with beta set to our first guess and alpha equal to beta - 1. A small search window will cause pruning to occur more often but may sacrifice information. The MTD algorithm uses the result of AlphaBeta as an upper/lower bound on the minimax value, if its less than our max bound, we set beta to the result else we update alpha to this value. This new guess is then used as the guess in the next call to mpd. 
 
+The algorithm will terminate when both the upper and lower bound collide or the timer runs out. 
 
 ### Monte Carlo Tree Search
 Unlike MinMax, MCTS does not require prior domain knowledge about the game. 
