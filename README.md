@@ -55,7 +55,12 @@ The AlphaBeta algorithm is simply a layering over the MinMax that helps to incre
 This lead to us seeing at some parts of the game tree, our algorithm reaching a depth of 21. 
   
   #### MinMax (MTD)
-  
+The MTD algorithm is another layering over our Alpha Beta MinMax algorithm that introduces minimal window search. 
+For each state of the game tree AlphaBeta works with a wide search window, where alpha and beta are initialised to -Infinity and +Infinity respectively. In this case, we can be certain of a return value within this bound. 
+
+MTD on the otherhand initialises its search using a *minimal search window*, which simply means making a call to AlphaBeta with beta set to our first guess and alpha equal to beta - 1. A small search window will cause pruning to occur more often but may sacrifice information. The MTD algorithm uses the result of AlphaBeta as an upper/lower bound on the minimax value, if its less than our max bound, we set beta to the result else we update alpha to this value. This new guess is then used as the guess in the next call to mpd. 
+
+
 ### Monte Carlo Tree Search
 Unlike MinMax, MCTS does not require prior domain knowledge about the game. 
 Evident from the name, its combines the idea of monte carlo simulations with our Mancala game tree.
