@@ -29,13 +29,13 @@ void make_move(int move) {
 }
 
 void run() {
-    std::tuple<std::__cxx11::string, std::__cxx11::string> msg_args;
+    std::tuple<std::string, std::string> msg_args;
     std::array<int, 16> board{7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0};
     int move;
-    std::__cxx11::string last_move;
+    std::string last_move;
     char sep;
     int side = de::NORTH;
-    std::__cxx11::string msg_type, args, player;
+    std::string msg_type, args, player;
     bool our_go = false;
     bool has_moved = false;
     while (true) {
