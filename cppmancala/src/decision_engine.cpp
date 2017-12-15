@@ -84,8 +84,8 @@ namespace de {
         }
 
         // TODO experiment with the game to learn good parameters
-        double w1 = 0.45, w2 = 0.05, w3 = 0.10, w4 = 0.3, w5 = 0.10;
-        return w1 * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
+        // double w1 = 0.45, w2 = 0.05, w3 = 0.10, w4 = 0.3, w5 = 0.10;
+        return SCORE_WEIGHT * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
     }
 
     int number_of_seeds_i_can_capture(std::array<int, 16> board, int side) {

@@ -1,8 +1,3 @@
-//
-// Created by t on 15/12/17.
-//
-
-#include "opt_h.h"
 #include <iostream>
 #include <sstream>
 
@@ -26,11 +21,11 @@ int main() {
 
                     // run game with these weights
                     std::stringstream cmd;
-                    cmd << "java -jar ../2012/ManKalah.jar \"java -jar ../2012/JimmyPlayer.jar\" \"/cmake-build-debug/main_app/cppmancala "
-                        << "-s " << score
-                        << " -o " << o_capture
-                        << " -d " << d_capture
-                        << " -c " << chains
+                    cmd << "java -jar 2012/ManKalah.jar \"java -jar 2012/JimmyPlayer.jar\" \"cppmancala/cmake-build-debug/main_app/cppmancala "
+                        << " " << score
+                        << " " << o_capture
+                        << " " << d_capture
+                        << " " << chains
                         << " \"";
                     system(cmd.str().c_str());
                 }
