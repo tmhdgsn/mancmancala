@@ -48,7 +48,7 @@ Given a game state X, we define:
 
 Since we wish to maximise all but x3, we will have positive weights to encourage such action and a negative weight to reduce the opponents potential to capture. Having experimented to find the optimal weights for their corresponding feature, we settled on the values below. We arrived at these values through repeated simulations of the game and ranking of scores.
 
-w1 = 1.5, w2 = 1.2, w3 = -1.7, w4 = 1
+w1 = 0.45, w2 = 0.05, w3 = -0.1, w4 = 0.1
 
 Once the max depth has been reached we propagate the scores back up the paths taken, updating each game state. We now pick the best move based on this propagated score.
   
