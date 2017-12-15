@@ -5,6 +5,8 @@
 
 #include <tuple>
 #include <ctime>
+#include <array>
+#include <limits>
 #include "decision_engine.h"
 
 namespace mtd {
