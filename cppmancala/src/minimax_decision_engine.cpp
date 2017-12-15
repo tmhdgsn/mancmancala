@@ -4,7 +4,6 @@
 #include <tuple>
 #include <iostream>
 #include <ctime>
-#include <limits>
 #include "decision_engine.h"
 
 
@@ -64,7 +63,7 @@ namespace minimax {
 
             // exit if reward is bigger than beta
             if (reward >= beta) {
-                return std::make_tuple(reward, -1, game_over);
+                return {reward, -1, game_over};
             }
         }
 
@@ -95,10 +94,10 @@ namespace minimax {
 
             // exit if reward is bigger than beta
             if (reward >= beta) {
-                return std::make_tuple(reward, pit, game_over);
+                return {reward, pit, game_over};
             }
         }
-        return std::make_tuple(reward, best_move, game_over);
+        return {reward, best_move, game_over};
     }
 
     std::tuple<double, int, bool>

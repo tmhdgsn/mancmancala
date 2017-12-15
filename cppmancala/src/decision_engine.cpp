@@ -54,7 +54,7 @@ namespace de {
     std::vector<int> sorted_mvs_by_heuristics(std::array<int, 16> board, int side) {
         auto moves = get_legal_moves(board, side);
         // sort by score in tuple.
-        std::sort(moves.begin(), moves.end(), [board, side](int const m1, int const m2) {
+        std::sort(moves.begin(), moves.end(), [board, side](auto const m1, auto const m2) {
             return heuristic(std::get<0>(get_next_board(board, m1, side)), side) <
                     heuristic(std::get<0>(get_next_board(board, m2, side)), side);
         });
