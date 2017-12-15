@@ -1,7 +1,7 @@
 cmake_minimum_required(VERSION 3.9)
 project(cppmancala)
 
-set(CMAKE_CXX_STANDARD 17)
+set(CMAKE_CXX_STANDARD 11)
 
 # Set the default build type to 'Release'
 if (NOT CMAKE_BUILD_TYPE)
