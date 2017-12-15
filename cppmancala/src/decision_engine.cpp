@@ -4,6 +4,7 @@
 #include <tuple>
 #include <algorithm>
 #include "decision_engine.h"
+#include "opt_h.h"
 
 namespace de {
 
@@ -84,8 +85,9 @@ namespace de {
         }
 
         // TODO experiment with the game to learn good parameters
-        double w1 = 0.45, w2 = 0.05, w3 = 0.10, w4 = 0.3, w5 = 0.10;
-        return w1 * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
+        // double w1 = 0.45, w2 = 0.05, w3 = 0.10, w4 = 0.3, w5 = 0.10;
+        // return opt_h::SCORE_WEIGHT * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
+        return opt_h::SCORE_WEIGHT * score - opt_h::O_CAPTURE * easy_caps + opt_h::CHAINS_WEIGHT * chaining_opportunities + opt_h::D_CAPTURE * capture_opportunities;
     }
 
     int number_of_seeds_i_can_capture(std::array<int, 16> board, int side) {
