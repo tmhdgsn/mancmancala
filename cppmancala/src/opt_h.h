@@ -6,9 +6,12 @@
 #define CPPMANCALA_OPT_H_H
 
 
-class opt_h {
-
-};
+namespace opt_h {
+    double SCORE_WEIGHT;
+    double O_CAPTURE;
+    double D_CAPTURE;
+    double CHAINS_WEIGHT;
+}
 
 
 #endif //CPPMANCALA_OPT_H_H

@@ -3,22 +3,18 @@
 //
 #include <cstdlib>
 #include "agent.h"
+#include "opt_h.h"
 
-// declare global weights
-double SCORE_WEIGHT;
-double O_CAPTURE;
-double D_CAPTURE;
-double CHAINS_WEIGHT;
 
 
 int main(int argc, char* argv[]) {
     /*
      * retrieve cmd line options
      */
-    SCORE_WEIGHT = atof(argv[0]);
-    O_CAPTURE = atof(argv[1]);
-    D_CAPTURE = atof(argv[2]);
-    CHAINS_WEIGHT = atof(argv[3]);
+    opt_h::SCORE_WEIGHT = atof(argv[1]);
+    opt_h::O_CAPTURE = atof(argv[2]);
+    opt_h::D_CAPTURE = atof(argv[3]);
+    opt_h::CHAINS_WEIGHT = atof(argv[4]);
 
     run();
     return 0;

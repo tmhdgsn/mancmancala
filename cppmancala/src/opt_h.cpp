@@ -1,5 +1,6 @@
 #include <iostream>
 #include <sstream>
+#include "opt_h.h"
 
 int main() {
     /*
@@ -7,25 +8,20 @@ int main() {
 
         iterate through potential weights playing the game for each set of weights
      */
-    const double MAX = 10.0;
+    const double MAX = 2.0;
 
-    for (int x1 = 1; x1 <= MAX; x1++){
-        for (int x2 = 1; x2 <= MAX; x2++){
-            for (int x3 = 1; x3 <= MAX; x3++){
-                for (int x4 = 1; x4 <= MAX; x4++){
-
-                    double score = x1 / MAX;
-                    double o_capture = x2 / MAX;
-                    double d_capture = x3 / MAX;
-                    double chains = x4 / MAX;
+    for (double x1 = opt_h::SCORE_WEIGHT; x1 <= MAX; x1 + 0.1){
+        for (double x2 = opt_h::O_CAPTURE; x2 <= MAX; x2 + 0.1){
+            for (double x3 = opt_h::D_CAPTURE; x3 <= MAX; x3 + 0.1){
+                for (double x4 = opt_h::CHAINS_WEIGHT; x4 <= MAX; x4 + 0.1){
 
                     // run game with these weights
                     std::stringstream cmd;
                     cmd << "java -jar 2012/ManKalah.jar \"java -jar 2012/JimmyPlayer.jar\" \"cppmancala/cmake-build-debug/main_app/cppmancala "
-                        << " " << score
-                        << " " << o_capture
-                        << " " << d_capture
-                        << " " << chains
+                        << " " << x1
+                        << " " << x2
+                        << " " << x3
+                        << " " << x4
                         << " \"";
                     system(cmd.str().c_str());
                 }
