@@ -1,7 +1,9 @@
 # mancmancala
 
+## Mancala Board Game AI 
+
 Methods Implemented:
-  * MinMax Variants (python and C++) (several heurstics experimented with)
+  * MinMax Variants (python and C++) (heurstics experimented with)
     * AlphaBeta Pruning
     * MTD
   * Monte Carlo Tree Search (python and C++)
