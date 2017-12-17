@@ -4,6 +4,7 @@
 #include <tuple>
 #include <algorithm>
 #include "decision_engine.h"
+#include "heuristic_params.h"
 
 namespace de {
 
@@ -69,7 +70,6 @@ namespace de {
         int score = (*my_mankalah - *opponents_mankalah);
 
         // hoard stones close to mankalah as they're harder to steal
-        int hoard_size = *(my_mankalah - 1) + *(my_mankalah - 2);
         // reduce the number of easy captures
         int easy_caps = number_of_seeds_i_can_capture(board, 8 - side);
         // incentivize chaining
@@ -84,8 +84,7 @@ namespace de {
         }
 
         // TODO experiment with the game to learn good parameters
-        double w1 = 0.45, w2 = 0.05, w3 = 0.10, w4 = 0.3, w5 = 0.10;
-        return w1 * score + w2 * hoard_size - w3 * easy_caps + w4 * chaining_opportunities + w5 * capture_opportunities;
+        return score_weight * score - defence_weight * easy_caps + chain_weight * chaining_opportunities + capture_weight * capture_opportunities;
     }
 
     int number_of_seeds_i_can_capture(std::array<int, 16> board, int side) {

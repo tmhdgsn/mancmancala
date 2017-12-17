@@ -4,6 +4,13 @@
 #include "decision_engine.h"
 #include <fstream>
 #include "agent.h"
+#include "heuristic_params.h"
+
+// declares global reference to heuristic params
+double score_weight;
+double defence_weight;
+double chain_weight;
+double capture_weight;
 
 void write_to_file(const std::string &input) {
     const char *path = "/home/damel/git/mancmancala/output.txt";
@@ -16,7 +23,6 @@ std::tuple<std::string, std::string> getmessage() {
     std::string input;
     std::cin >> input;
     std::size_t sep = input.find(';');
-//    write_to_file(input);
     return {input.substr(0, sep), input.substr(sep + 1)};
 };
 
@@ -28,7 +34,13 @@ void make_move(int move) {
     }
 }
 
-void run() {
+void run(double new_score_weight, double new_defence_weight, double new_chain_weight, double new_capture_weight) {
+    // update heuristic params
+    score_weight = new_score_weight;
+    defence_weight = new_defence_weight;
+    chain_weight = new_chain_weight;
+    capture_weight = new_capture_weight;
+
     std::tuple<std::string, std::string> msg_args;
     std::array<int, 16> board{7, 7, 7, 7, 7, 7, 7, 0, 7, 7, 7, 7, 7, 7, 7, 0};
     int move;

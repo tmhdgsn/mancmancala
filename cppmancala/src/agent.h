@@ -4,5 +4,5 @@
 
 #ifndef CPPMANCALA_AGENT_H
 #define CPPMANCALA_AGENT_H
-void run();
+void run(double score_weight, double defence_weight, double chain_weight, double capture_weight);
 #endif //CPPMANCALA_AGENT_H

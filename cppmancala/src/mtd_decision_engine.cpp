@@ -5,13 +5,12 @@
 
 #include <tuple>
 #include <ctime>
-#include <array>
-#include <limits>
 #include "decision_engine.h"
 
 namespace mtd {
 
-    std::tuple<double, int, bool> mtdf(double firstguess, std::array<int, 16> board, int side, int depth, bool has_moved);
+    std::tuple<double, int, bool>
+    mtdf(double firstguess, std::array<int, 16> board, int side, int depth, bool has_moved);
 
     double firstguess = 0;
 
@@ -32,7 +31,8 @@ namespace mtd {
         return move;
     }
 
-    std::tuple<double, int, bool> mtdf(double firstguess, std::array<int, 16> board, int side, int depth, bool has_moved) {
+    std::tuple<double, int, bool>
+    mtdf(double firstguess, std::array<int, 16> board, int side, int depth, bool has_moved) {
         auto upperbound = std::numeric_limits<double>::infinity();
         auto lowerbound = -std::numeric_limits<double>::infinity();
         auto g = firstguess;
@@ -40,10 +40,10 @@ namespace mtd {
         double beta;
         while (lowerbound < upperbound) {
             beta = g == lowerbound ? g + 1 : g;
-                full_game_state_tuple = minimax::max_min(board, side, beta - 5, beta, depth, has_moved);
+            full_game_state_tuple = minimax::max_min(board, side, beta - 5, beta, depth, has_moved);
             g = std::get<0>(full_game_state_tuple);
 
-            if(g < beta) {
+            if (g < beta) {
                 upperbound = g;
             } else {
                 lowerbound = g;
