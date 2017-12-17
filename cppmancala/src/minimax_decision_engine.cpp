@@ -17,8 +17,8 @@ namespace minimax {
         double alpha;
         double beta;
         std::tuple<double, int, bool> reward_move;
-        const auto now = std::time(nullptr) + 35;
-        for (int depth = 6; depth < 40; depth++) {
+        const auto now = std::time(nullptr) + 3;
+        for (int depth = 10; depth < 40; depth++) {
             alpha = -std::numeric_limits<double>::infinity();
             beta = std::numeric_limits<double>::infinity();
             reward_move = max_min(board, side, alpha, beta, depth, has_moved);

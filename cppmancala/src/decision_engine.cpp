@@ -54,11 +54,11 @@ namespace de {
 
     std::vector<int> sorted_mvs_by_heuristics(std::array<int, 16> board, int side) {
         auto moves = get_legal_moves(board, side);
-        // sort by score in tuple.
-        std::sort(moves.begin(), moves.end(), [board, side](int const m1, int const m2) {
-            return heuristic(std::get<0>(get_next_board(board, m1, side)), side) <
-                    heuristic(std::get<0>(get_next_board(board, m2, side)), side);
-        });
+        // TODO: add transposition tables and use the stored rewards as this has high complexity cost.
+//        std::sort(moves.begin(), moves.end(), [board, side](int const m1, int const m2) {
+//            return heuristic(std::get<0>(get_next_board(board, m1, side)), side) <
+//                    heuristic(std::get<0>(get_next_board(board, m2, side)), side);
+//        });
         return moves;
     }
 
@@ -78,13 +78,13 @@ namespace de {
         int capture_opportunities = number_of_seeds_i_can_capture(board, side);
 
         for (auto hole = board.begin() + side; hole < my_mankalah; hole++) {
-            if (my_mankalah - hole == *hole) {
+            if (*hole % 15 == my_mankalah - hole) {
                 chaining_opportunities++;
             }
         }
 
-        // TODO experiment with the game to learn good parameters
-        return score_weight * score - defence_weight * easy_caps + chain_weight * chaining_opportunities + capture_weight * capture_opportunities;
+        return score_weight * score - defence_weight * easy_caps +
+                chain_weight * chaining_opportunities + capture_weight * capture_opportunities;
     }
 
     int number_of_seeds_i_can_capture(std::array<int, 16> board, int side) {
@@ -97,9 +97,9 @@ namespace de {
         for (auto hole = board.begin() + side; hole < my_mankalah; hole++) {
             distance = int(my_mankalah - hole);
             land_place = *hole < distance ? (*hole + hole): board.begin() + side + (*hole - distance - 8);
-            opp_land_place = board.begin() + (my_mankalah - 1 - hole + opp_side);
-            if (*hole < 16 && (*hole < distance || *hole - distance > 7)
-                && (*hole == 15 || *land_place > 0)) {
+            opp_land_place = board.begin() + (my_mankalah - 1 - land_place + opp_side);
+            if (*hole > 0 && *hole < 16 && (*hole < distance || *hole - distance > 7)
+                && (*hole == 15 || *land_place == 0)) {
                 captures += *opp_land_place;
             }
         }
